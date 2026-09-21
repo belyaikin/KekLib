@@ -3,7 +3,8 @@ project(KekWorld)
 
 add_library(KekWorld STATIC
         src/Scene.cpp
-        include/KekWorld/Scene.h
-        include/KekWorld/Node.h)
+        include/KekWorld/Scene.hpp
+        include/KekWorld/Node.hpp
+        src/Node.cpp)
 
 target_include_directories(KekWorld PUBLIC include)
