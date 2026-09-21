@@ -5,7 +5,7 @@
 #pragma once
 #include "Scene.h"
 
-namespace Kek::Scene {
+namespace Kek::World {
     class Node {
         const Scene &scene;
 

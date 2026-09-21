@@ -4,4 +4,4 @@ project(KekLib)
 set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory("KekRenderer")
-add_subdirectory("KekScene")
+add_subdirectory("KekWorld")

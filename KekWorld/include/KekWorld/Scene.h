@@ -4,7 +4,7 @@
 
 #pragma once
 
-namespace Kek::Scene {
+namespace Kek::World {
     class Scene {
 
     };
