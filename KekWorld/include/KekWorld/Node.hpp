@@ -57,7 +57,7 @@ namespace Kek::World
         }
 
         template <typename T>
-        std::vector<T*> GetChildNodesOfType()
+        std::vector<T*> GetChildNodesOfType() const
         {
             std::vector<T*> found = {};
 
@@ -71,6 +71,7 @@ namespace Kek::World
         }
 
         void AddChildNode(std::unique_ptr<Node> node);
+        void RemoveChildNode(Node *node);
 
         [[nodiscard]]
         Position GetPosition() const
@@ -94,7 +95,7 @@ namespace Kek::World
             this->rotation = rotation;
         }
 
-        virtual void Start() = 0;
-        virtual void Update() = 0;
+        virtual void Start() {}
+        virtual void Update() {}
     };
 }

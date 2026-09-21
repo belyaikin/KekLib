@@ -12,18 +12,16 @@ namespace Kek::World
         nodes.push_back(std::move(node));
     }
 
-    void Scene::DeleteNode(Node *node)
+    void Scene::DeleteNode(Node* node)
     {
         if (!node) return;
 
-        for (auto& childNode : node->GetChildNodes()) {
-            DeleteNode(childNode.get());
+        if (Node* parent = node->GetParentNode()) {
+            parent->RemoveChildNode(node);
+        } else {
+            std::erase_if(nodes, [node](const std::unique_ptr<Node>& n) {
+                return n.get() == node;
+            });
         }
-
-        node->SetScene(nullptr);
-
-        std::erase_if(this->nodes, [&node](const std::unique_ptr<Node>& managedNode) {
-            return managedNode.get() == node;
-        });
     }
 }

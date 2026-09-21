@@ -12,4 +12,11 @@ namespace Kek::World
         node->parentNode = this;
         childNodes.push_back(std::move(node));
     }
+
+    void Node::RemoveChildNode(Node *node)
+    {
+        std::erase_if(childNodes, [node](const std::unique_ptr<Node>& n) {
+            return n.get() == node;
+        });
+    }
 }
