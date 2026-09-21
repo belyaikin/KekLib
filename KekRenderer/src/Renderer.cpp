@@ -2,7 +2,7 @@
 // Created by Dmitriy on 21.09.2026.
 //
 
-#include "KekRenderer/Renderer.h"
+#include "KekRenderer/Renderer.hpp"
 
 namespace Kek::Renderer {
     void Renderer::AddVertexBufferObject(const GLuint vertexBufferObject) {

@@ -6,6 +6,7 @@ include_directories("deps/glad/include")
 
 add_library(KekRenderer STATIC
         src/Renderer.cpp
-        include/KekRenderer/Renderer.h)
+        include/KekRenderer/Renderer.hpp
+        include/KekRenderer/IRenderTarget.hpp)
 
 target_include_directories(KekRenderer PUBLIC include)
