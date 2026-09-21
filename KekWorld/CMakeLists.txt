@@ -8,3 +8,5 @@ add_library(KekWorld STATIC
         src/Node.cpp)
 
 target_include_directories(KekWorld PUBLIC include)
+
+target_link_libraries(KekWorld PUBLIC KekMath)

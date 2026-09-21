@@ -7,17 +7,11 @@
 #include <memory>
 #include <vector>
 
+#include <KekMath/Vector3.hpp>
+
 namespace Kek::World
 {
     class Scene;
-
-    struct Position {
-        float x, y, z;
-    };
-
-    struct Rotation {
-        float x, y, z;
-    };
 
     class Node {
         const Scene *scene = nullptr;
@@ -25,8 +19,8 @@ namespace Kek::World
         Node *parentNode = nullptr;
         std::vector<std::unique_ptr<Node>> childNodes;
 
-        Position position = {.x = 0, .y = 0, .z = 0};
-        Rotation rotation = {.x = 0, .y = 0, .z = 0};
+        Math::Vector3 position = Math::Vector3(0, 0, 0);
+        Math::Vector3 rotation = Math::Vector3(0, 0, 0);
 
     public:
         Node() = default;
@@ -74,23 +68,23 @@ namespace Kek::World
         void RemoveChildNode(Node *node);
 
         [[nodiscard]]
-        Position GetPosition() const
+        Math::Vector3 GetPosition() const
         {
             return this->position;
         }
 
-        void SetPosition(const Position& position)
+        void SetPosition(const Math::Vector3& position)
         {
             this->position = position;
         }
 
         [[nodiscard]]
-        Rotation GetRotation() const
+        Math::Vector3 GetRotation() const
         {
             return this->rotation;
         }
 
-        void SetRotation(const Rotation& rotation)
+        void SetRotation(const Math::Vector3& rotation)
         {
             this->rotation = rotation;
         }
