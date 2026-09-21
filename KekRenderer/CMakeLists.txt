@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.6)
 project(KekRenderer)
 
-add_subdirectory("deps/glfw")
+include_directories("deps/glfw/include")
 include_directories("deps/glad/include")
 
 add_library(KekRenderer STATIC
