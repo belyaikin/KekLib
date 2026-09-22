@@ -3,11 +3,11 @@
 //
 
 #pragma once
-#include "OpenGLObject.hpp"
+#include "Object.hpp"
 
 namespace Kek::Renderer::OpenGL
 {
-    class VertexArray : public OpenGLObject
+    class VertexArray : public Object
     {
 
     };

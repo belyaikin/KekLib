@@ -6,7 +6,7 @@
 
 namespace Kek::Renderer::OpenGL
 {
-    class OpenGLObjectFactory
+    class Context
     {
 
     };

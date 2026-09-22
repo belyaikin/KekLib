@@ -3,11 +3,10 @@
 //
 
 #pragma once
-#include "Object.hpp"
 
 namespace Kek::Renderer::OpenGL
 {
-    class VertexBuffer : public Object
+    class ObjectFactory
     {
 
     };
