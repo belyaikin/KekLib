@@ -4,8 +4,10 @@
 
 #pragma once
 
-namespace Kek::Math {
-    class Vector3 {
+namespace Kek::Math
+{
+    class Vector3
+    {
         float x, y, z;
 
     public:

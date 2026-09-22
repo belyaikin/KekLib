@@ -4,8 +4,10 @@
 
 #pragma once
 
-namespace Kek::Renderer {
-    class IRenderTarget {
+namespace Kek::Renderer
+{
+    class IRenderTarget
+    {
         
     };
 }

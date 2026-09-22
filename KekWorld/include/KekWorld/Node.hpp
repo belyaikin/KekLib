@@ -13,7 +13,8 @@ namespace Kek::World
 {
     class Scene;
 
-    class Node {
+    class Node
+    {
         const Scene *scene = nullptr;
 
         Node *parentNode = nullptr;
