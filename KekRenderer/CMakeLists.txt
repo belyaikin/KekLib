@@ -3,12 +3,11 @@ project(KekRenderer)
 
 add_library(KekRenderer STATIC
         include/KekRenderer/IRenderTarget.hpp
-        include/KekRenderer/OpenGL/ObjectFactory.hpp
-        src/ObjectFactory.cpp
-        include/KekRenderer/OpenGL/VertexBuffer.hpp
+        include/KekRenderer/OpenGL/Buffer.hpp
         include/KekRenderer/OpenGL/VertexArray.hpp
         include/KekRenderer/OpenGL/Object.hpp
-        include/KekRenderer/OpenGL/Context.hpp)
+        include/KekRenderer/OpenGL/Context.hpp
+        src/Context.cpp)
 
 target_include_directories(KekRenderer PUBLIC include)
 
