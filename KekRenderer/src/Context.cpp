@@ -6,10 +6,10 @@
 
 namespace Kek::Renderer::OpenGL
 {
-    std::vector<VertexArray> Context::CreateVertexArrays(const int n)
+    std::vector<VertexArray> Context::CreateVertexArrays(const size_t n)
     {
         std::vector<GLuint> vertexArraysIds(n);
-        glGenVertexArrays(n, vertexArraysIds.data());
+        glGenVertexArrays(static_cast<GLsizei>(n), vertexArraysIds.data());
 
         std::vector<VertexArray> vertexArrays;
         vertexArrays.reserve(n);

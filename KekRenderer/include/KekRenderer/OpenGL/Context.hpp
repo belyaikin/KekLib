@@ -13,7 +13,7 @@ namespace Kek::Renderer::OpenGL
 {
     class Context
     {
-        [[nodiscard]] std::vector<VertexArray> CreateVertexArrays(int n);
+        [[nodiscard]] std::vector<VertexArray> CreateVertexArrays(size_t n);
         void BindVertexArray(const VertexArray& vertexArray);
         void DestroyVertexArrays(const std::vector<VertexArray> &vertexArrays);
 
