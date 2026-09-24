@@ -18,5 +18,6 @@ namespace Kek::Renderer::OpenGL
         void DestroyVertexArrays(const std::vector<VertexArray> &vertexArrays);
 
         std::vector<Buffer> CreateBuffers(size_t n);
+        void BindBuffer(const Buffer& buffer, Buffer::Type type);
     };
 }

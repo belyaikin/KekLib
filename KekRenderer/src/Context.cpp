@@ -54,4 +54,10 @@ namespace Kek::Renderer::OpenGL
 
         return buffers;
     }
+
+    void Context::BindBuffer(const Buffer& buffer, const Buffer::Type type) {
+        switch (type) {
+            case Buffer::Type::Vertex: glBindBuffer(GL_ARRAY_BUFFER, buffer.GetId());
+        }
+    }
 }
