@@ -4,20 +4,21 @@
 
 #pragma once
 
-#include <memory>
 #include <vector>
 
-#include "Node.hpp"
+namespace Kek::Nodes {
+    class Node;
+}
 
 namespace Kek::World
 {
     class Scene
     {
-        std::vector<std::unique_ptr<Node>> nodes;
+        std::vector<std::unique_ptr<Nodes::Node>> nodes;
 
     public:
-        void AddNode(std::unique_ptr<Node> node);
-        void DeleteNode(Node *node);
+        void AddNode(std::unique_ptr<Nodes::Node> node);
+        void DeleteNode(Nodes::Node *node);
 
         template <typename T>
         std::vector<T*> GetNodesOfType()

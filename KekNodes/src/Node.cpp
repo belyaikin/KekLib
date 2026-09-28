@@ -2,9 +2,9 @@
 // Created by Dmitriy on 21.09.2026.
 //
 
-#include "KekWorld/Node.hpp"
+#include "KekNodes/Node.hpp"
 
-namespace Kek::World
+namespace Kek::Nodes
 {
     void Node::AddChildNode(std::unique_ptr<Node> node)
     {

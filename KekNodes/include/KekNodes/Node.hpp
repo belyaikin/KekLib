@@ -9,13 +9,15 @@
 
 #include <KekMath/Vector3.hpp>
 
-namespace Kek::World
-{
+namespace Kek::World {
     class Scene;
+}
 
+namespace Kek::Nodes
+{
     class Node
     {
-        const Scene *scene = nullptr;
+        const World::Scene *scene = nullptr;
 
         Node *parentNode = nullptr;
         std::vector<std::unique_ptr<Node>> childNodes;
@@ -29,12 +31,12 @@ namespace Kek::World
         virtual ~Node() = default;
 
         [[nodiscard]]
-        const Scene *GetScene() const
+        const World::Scene *GetScene() const
         {
             return scene;
         }
 
-        void SetScene(const Scene *scene)
+        void SetScene(const World::Scene *scene)
         {
             this->scene = scene;
         }
