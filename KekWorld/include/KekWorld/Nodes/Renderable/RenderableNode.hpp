@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "Node.hpp"
+#include "../Node.hpp"
 #include "KekRenderer/IRenderTarget.hpp"
 
-namespace Kek::Nodes
+namespace Kek::Nodes::Renderable
 {
     class RenderableNode : public Node, public Renderer::IRenderTarget
     {

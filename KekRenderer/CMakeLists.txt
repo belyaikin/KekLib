@@ -15,3 +15,5 @@ target_include_directories(KekRenderer PRIVATE
         deps/glfw/include
         deps/glad/include
 )
+
+target_link_libraries(KekRenderer PUBLIC KekMath)

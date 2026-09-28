@@ -4,21 +4,14 @@
 
 #pragma once
 
-#include <memory>
 #include <vector>
 
 #include <KekMath/Vector3.hpp>
-
-namespace Kek::World {
-    class Scene;
-}
 
 namespace Kek::Nodes
 {
     class Node
     {
-        const World::Scene *scene = nullptr;
-
         Node *parentNode = nullptr;
         std::vector<std::unique_ptr<Node>> childNodes;
 
@@ -29,17 +22,6 @@ namespace Kek::Nodes
         Node() = default;
 
         virtual ~Node() = default;
-
-        [[nodiscard]]
-        const World::Scene *GetScene() const
-        {
-            return scene;
-        }
-
-        void SetScene(const World::Scene *scene)
-        {
-            this->scene = scene;
-        }
 
         [[nodiscard]]
         Node *GetParentNode() const
