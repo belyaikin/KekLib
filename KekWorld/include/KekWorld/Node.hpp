@@ -17,10 +17,12 @@ namespace Kek::World
         std::vector<std::unique_ptr<Node>> childNodes;
 
         std::vector<std::unique_ptr<Script>> scripts;
+
+        Transform* transform;
     public:
         Node()
         {
-            AttachScript<Transform>(Math::Vector3{0, 0, 0});
+            this->transform = AttachScript<Transform>(Math::Vector3{0, 0, 0});
         }
 
         virtual ~Node() = default;
