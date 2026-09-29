@@ -18,8 +18,9 @@ namespace Kek::World
 
         std::vector<std::unique_ptr<Script>> scripts;
 
-        Transform* transform;
     public:
+        Transform* transform;
+
         Node()
         {
             this->transform = AttachScript<Transform>(Math::Vector3{0, 0, 0});
