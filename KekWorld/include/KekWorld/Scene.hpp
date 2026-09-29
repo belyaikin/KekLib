@@ -5,7 +5,7 @@
 #pragma once
 #include <memory>
 
-#include "Nodes/Node.hpp"
+#include "Node.hpp"
 
 namespace Kek::World
 {

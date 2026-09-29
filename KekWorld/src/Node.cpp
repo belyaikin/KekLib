@@ -2,9 +2,9 @@
 // Created by Dmitriy on 21.09.2026.
 //
 
-#include "KekWorld/Nodes/Node.hpp"
+#include "../include/KekWorld/Node.hpp"
 
-namespace Kek::Nodes
+namespace Kek::World
 {
     void Node::AddChildNode(std::unique_ptr<Node> node)
     {
@@ -17,5 +17,13 @@ namespace Kek::Nodes
         std::erase_if(childNodes, [node](const std::unique_ptr<Node>& n) {
             return n.get() == node;
         });
+    }
+
+    void Node::TickScripts() const
+    {
+        for (const auto& script : this->scripts)
+        {
+            script->Tick();
+        }
     }
 }

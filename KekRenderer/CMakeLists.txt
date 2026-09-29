@@ -7,7 +7,9 @@ add_library(KekRenderer STATIC
         include/KekRenderer/OpenGL/VertexArray.hpp
         include/KekRenderer/OpenGL/Object.hpp
         include/KekRenderer/OpenGL/Context.hpp
-        src/Context.cpp)
+        src/Context.cpp
+        include/KekRenderer/Model.hpp
+        include/KekRenderer/Vertex.hpp)
 
 target_include_directories(KekRenderer PUBLIC include)
 

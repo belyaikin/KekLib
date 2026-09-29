@@ -6,20 +6,22 @@
 
 #include <vector>
 
-#include <KekMath/Vector3.hpp>
+#include "Script.hpp"
+#include "Transform.hpp"
 
-namespace Kek::Nodes
+namespace Kek::World
 {
     class Node
     {
         Node *parentNode = nullptr;
         std::vector<std::unique_ptr<Node>> childNodes;
 
-        Math::Vector3 position = Math::Vector3(0, 0, 0);
-        Math::Vector3 rotation = Math::Vector3(0, 0, 0);
-
+        std::vector<std::unique_ptr<Script>> scripts;
     public:
-        Node() = default;
+        Node()
+        {
+            AttachScript<Transform>(Math::Vector3{0, 0, 0});
+        }
 
         virtual ~Node() = default;
 
@@ -52,29 +54,22 @@ namespace Kek::Nodes
         void AddChildNode(std::unique_ptr<Node> node);
         void RemoveChildNode(Node *node);
 
-        [[nodiscard]]
-        Math::Vector3 GetPosition() const
+        template <typename T, typename... Args>
+        T* AttachScript(Args&&... args)
         {
-            return this->position;
+            static_assert(std::is_base_of_v<Script, T>, "T must derive from Script");
+
+            auto script = std::make_unique<T>(std::forward<Args>(args)...);
+
+            T* raw = script.get();
+            raw->SetNode(this);
+
+            this->scripts.push_back(std::move(script));
+
+            return raw;
         }
 
-        void SetPosition(const Math::Vector3& position)
-        {
-            this->position = position;
-        }
-
-        [[nodiscard]]
-        Math::Vector3 GetRotation() const
-        {
-            return this->rotation;
-        }
-
-        void SetRotation(const Math::Vector3& rotation)
-        {
-            this->rotation = rotation;
-        }
-
-        virtual void Start() {}
-        virtual void Update() {}
+    private:
+        void TickScripts() const;
     };
 }
