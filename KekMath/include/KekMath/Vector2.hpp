@@ -18,6 +18,9 @@ namespace Kek::Math
 
         constexpr Vector2(const float x, const float y) : x(x), y(y) {}
 
+        [[nodiscard]] constexpr float GetX() const { return x; }
+        [[nodiscard]] constexpr float GetY() const { return y; }
+
         constexpr Vector2 operator+(const Vector2& other) const
         {
             return Vector2{ x + other.x, y + other.y };
@@ -30,10 +33,33 @@ namespace Kek::Math
             return *this;
         }
 
-        [[nodiscard]]
-        constexpr float Dot(const Vector2& other) const
+        constexpr Vector2 operator*(const float by) const
         {
-            return this->x * other.x + this->y * other.y;
+            return Vector2{ x * by, y * by };
+        }
+
+        constexpr Vector2 operator*(const Vector2 &by) const
+        {
+            return Vector2{ x * by.x, y * by.y };
+        }
+
+        friend constexpr Vector2 operator*(const float by, const Vector2& v)
+        {
+            return v * by;
+        }
+
+        constexpr Vector2& operator*=(const float by)
+        {
+            x *= by;
+            y *= by;
+            return *this;
+        }
+
+        constexpr Vector2& operator*=(const Vector2 &by)
+        {
+            x *= by.x;
+            y *= by.y;
+            return *this;
         }
     };
 

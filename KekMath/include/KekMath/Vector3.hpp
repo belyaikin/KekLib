@@ -20,6 +20,10 @@ namespace Kek::Math
 
         constexpr Vector3(const float x, const float y, const float z) : x(x), y(y), z(z) {}
 
+        [[nodiscard]] constexpr float X() const { return x; }
+        [[nodiscard]] constexpr float Y() const { return y; }
+        [[nodiscard]] constexpr float Z() const { return z; }
+
         constexpr Vector3 operator+(const Vector3& other) const
         {
             return Vector3{ x + other.x, y + other.y, z + other.z };
@@ -33,10 +37,35 @@ namespace Kek::Math
             return *this;
         }
 
-        [[nodiscard]]
-        constexpr float Dot(const Vector3& other) const
+        constexpr Vector3 operator*(const float by) const
         {
-            return this->x * other.x + this->y * other.y + this->z * other.z;
+            return Vector3{ x * by, y * by, z * by };
+        }
+
+        constexpr Vector3 operator*(const Vector3 &by) const
+        {
+            return Vector3{ x * by.x, y * by.y, z * by.z };
+        }
+
+        friend constexpr Vector3 operator*(const float by, const Vector3& v)
+        {
+            return v * by;
+        }
+
+        constexpr Vector3& operator*=(const float by)
+        {
+            x *= by;
+            y *= by;
+            z *= by;
+            return *this;
+        }
+
+        constexpr Vector3& operator*=(const Vector3 &by)
+        {
+            x *= by.x;
+            y *= by.y;
+            z *= by.z;
+            return *this;
         }
     };
 
