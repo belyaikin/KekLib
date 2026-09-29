@@ -9,9 +9,9 @@ namespace Kek::Renderer
 {
     class Vertex
     {
-        Math::Vector3 *points;
+        Math::Vector3 position;
 
     public:
-        explicit Vertex(Math::Vector3 points[3]) : points(points) {}
+        explicit Vertex(const Math::Vector3 position) : position(position) {}
     };
 }
