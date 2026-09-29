@@ -72,7 +72,6 @@ namespace Kek::World
             return raw;
         }
 
-    private:
-        void TickScripts() const;
+        void Tick() const;
     };
 }

@@ -19,8 +19,13 @@ namespace Kek::World
         });
     }
 
-    void Node::TickScripts() const
+    void Node::Tick() const
     {
+        for (const auto& child : this->childNodes)
+        {
+            child->Tick();
+        }
+
         for (const auto& script : this->scripts)
         {
             script->Tick();
