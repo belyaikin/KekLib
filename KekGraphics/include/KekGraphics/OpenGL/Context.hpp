@@ -9,7 +9,7 @@
 #include "Buffer.hpp"
 #include "VertexArray.hpp"
 
-namespace Kek::Renderer::OpenGL
+namespace Kek::Graphics::OpenGL
 {
     class Context
     {

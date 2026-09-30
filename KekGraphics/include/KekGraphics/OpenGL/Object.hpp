@@ -5,7 +5,7 @@
 #pragma once
 #include "glad/gl.h"
 
-namespace Kek::Renderer::OpenGL
+namespace Kek::Graphics::OpenGL
 {
     class Object
     {

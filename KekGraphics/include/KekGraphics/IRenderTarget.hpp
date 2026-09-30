@@ -4,7 +4,7 @@
 
 #pragma once
 
-namespace Kek::Renderer
+namespace Kek::Graphics
 {
     class IRenderTarget
     {

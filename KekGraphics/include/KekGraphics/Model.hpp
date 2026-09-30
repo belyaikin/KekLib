@@ -7,7 +7,7 @@
 
 #include "Vertex.hpp"
 
-namespace Kek::Renderer
+namespace Kek::Graphics
 {
     class Model
     {

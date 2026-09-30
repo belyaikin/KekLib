@@ -5,7 +5,7 @@
 #pragma once
 #include "KekMath/Vector3.hpp"
 
-namespace Kek::Renderer
+namespace Kek::Graphics
 {
     class Vertex
     {

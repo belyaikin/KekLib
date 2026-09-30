@@ -5,7 +5,7 @@
 #pragma once
 #include "Object.hpp"
 
-namespace Kek::Renderer::OpenGL
+namespace Kek::Graphics::OpenGL
 {
     class Buffer : public Object
     {

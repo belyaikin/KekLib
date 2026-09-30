@@ -2,9 +2,9 @@
 // Created by Dmitriy on 22.09.2026.
 //
 
-#include "KekRenderer/OpenGL/Context.hpp"
+#include "KekGraphics/OpenGL/Context.hpp"
 
-namespace Kek::Renderer::OpenGL
+namespace Kek::Graphics::OpenGL
 {
     std::vector<VertexArray> Context::CreateVertexArrays(const size_t n)
     {
