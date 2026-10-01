@@ -9,7 +9,11 @@ add_library(KekGraphics STATIC
         include/KekGraphics/OpenGL/Context.hpp
         src/Context.cpp
         include/KekGraphics/Model.hpp
-        include/KekGraphics/Vertex.hpp)
+        include/KekGraphics/Vertex.hpp
+        include/KekGraphics/OpenGL/Shader.hpp
+        include/KekGraphics/OpenGL/ShaderProgram.hpp
+        include/KekGraphics/OpenGL/ObjectFactory.hpp
+        src/ObjectFactory.cpp)
 
 target_include_directories(KekGraphics PUBLIC include)
 

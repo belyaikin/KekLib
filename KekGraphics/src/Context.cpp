@@ -6,22 +6,6 @@
 
 namespace Kek::Graphics::OpenGL
 {
-    std::vector<VertexArray> Context::CreateVertexArrays(const size_t n)
-    {
-        std::vector<GLuint> vertexArraysIds(n);
-        glGenVertexArrays(static_cast<GLsizei>(n), vertexArraysIds.data());
-
-        std::vector<VertexArray> vertexArrays;
-        vertexArrays.reserve(n);
-
-        for (const GLuint vertexArrayId : vertexArraysIds)
-        {
-            vertexArrays.emplace_back(vertexArrayId);
-        }
-
-        return vertexArrays;
-    }
-
     void Context::BindVertexArray(const VertexArray& vertexArray)
     {
         glBindVertexArray(vertexArray.GetId());
@@ -37,22 +21,6 @@ namespace Kek::Graphics::OpenGL
         }
 
         glDeleteVertexArrays(static_cast<GLsizei>(ids.size()), ids.data());
-    }
-
-    std::vector<Buffer> Context::CreateBuffers(const size_t n)
-    {
-        std::vector<GLuint> buffersIds(n);
-        glGenBuffers(static_cast<GLsizei>(n), buffersIds.data());
-
-        std::vector<Buffer> buffers;
-        buffers.reserve(n);
-
-        for (const GLuint bufferId: buffersIds)
-        {
-            buffers.emplace_back(bufferId);
-        }
-
-        return buffers;
     }
 
     void Context::BindBuffer(const Buffer& buffer, const Buffer::Type type) {
