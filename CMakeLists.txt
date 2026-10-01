@@ -4,6 +4,7 @@ project(KekLib)
 set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory("KekMath")
+add_subdirectory("KekInput")
 add_subdirectory("KekGraphics")
 add_subdirectory("KekWorld")
 add_subdirectory("KekApplication")

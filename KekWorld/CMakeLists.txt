@@ -11,4 +11,4 @@ add_library(KekWorld STATIC
 
 target_include_directories(KekWorld PUBLIC include)
 
-target_link_libraries(KekWorld PUBLIC KekMath KekRenderer)
+target_link_libraries(KekWorld PUBLIC KekMath KekInput KekRenderer)
