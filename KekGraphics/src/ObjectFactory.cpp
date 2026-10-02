@@ -2,6 +2,8 @@
 // Created by Dmitriy on 01.10.2026.
 //
 
+#include <utility>
+
 #include "KekGraphics/OpenGL/ObjectFactory.hpp"
 
 #include "KekGraphics/OpenGL/Context.hpp"
@@ -54,5 +56,17 @@ namespace Kek::Graphics::OpenGL
         glShaderSource(shaderId, 1, &source, nullptr);
 
         return Shader{shaderId, source};
+    }
+
+    ShaderProgram ObjectFactory::CreateShaderProgram(std::vector<const Shader *> shaders)
+    {
+        const auto shaderProgram = ShaderProgram{ glCreateProgram(), std::move(shaders) };
+
+        for (const auto shader : shaderProgram.GetShaders())
+        {
+            glAttachShader(shaderProgram.GetId(), shader->GetId());
+        }
+
+        return shaderProgram;
     }
 }

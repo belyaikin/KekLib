@@ -7,6 +7,7 @@
 #include <vector>
 #include "Buffer.hpp"
 #include "Shader.hpp"
+#include "ShaderProgram.hpp"
 #include "VertexArray.hpp"
 
 namespace Kek::Graphics::OpenGL
@@ -18,5 +19,7 @@ namespace Kek::Graphics::OpenGL
         static std::vector<Buffer> CreateBuffers(size_t n);
 
         static Shader CreateShader(Shader::Type type, const char *source);
+
+        static ShaderProgram CreateShaderProgram(std::vector<const Shader *> shaders);
     };
 }
