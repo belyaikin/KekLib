@@ -13,10 +13,10 @@ namespace Kek::Graphics::OpenGL
 {
     class ObjectFactory
     {
-        [[nodiscard]] std::vector<VertexArray> CreateVertexArrays(size_t n);
+        [[nodiscard]] static std::vector<VertexArray> CreateVertexArrays(size_t n);
 
-        std::vector<Buffer> CreateBuffers(size_t n);
+        static std::vector<Buffer> CreateBuffers(size_t n);
 
-        Shader CreateShader(Shader::Type type, const char *source);
+        static Shader CreateShader(Shader::Type type, const char *source);
     };
 }
