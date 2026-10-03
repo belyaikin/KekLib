@@ -12,9 +12,13 @@ namespace Kek::Graphics::OpenGL
 {
     class ShaderProgram : public Object
     {
-        const std::vector<Shader> shaders;
-        
+        const std::vector<const Shader*> shaders;
+
     public:
-        explicit ShaderProgram(std::vector<Shader> shaders) : shaders(std::move(shaders)) {}
+        explicit ShaderProgram(const GLuint id, std::vector<const Shader*> shaders) :
+            Object(id),
+            shaders(std::move(shaders)) {}
+
+        [[nodiscard]] const std::vector<const Shader*>& GetShaders() const { return shaders; }
     };
 }
