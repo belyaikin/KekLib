@@ -14,6 +14,7 @@ namespace Kek::Graphics::OpenGL
 {
     class ObjectFactory
     {
+    public:
         [[nodiscard]] static std::vector<VertexArray> CreateVertexArrays(size_t n);
 
         [[nodiscard]] static std::vector<Buffer> CreateBuffers(size_t n);
