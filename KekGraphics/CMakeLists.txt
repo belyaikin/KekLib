@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.10)
 project(KekGraphics)
 
 add_library(KekGraphics STATIC
@@ -18,7 +18,6 @@ add_library(KekGraphics STATIC
 target_include_directories(KekGraphics PUBLIC include)
 
 target_include_directories(KekGraphics PRIVATE
-        deps/glfw/include
         deps/glad/include
 )
 
