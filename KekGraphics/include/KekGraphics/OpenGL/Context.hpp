@@ -14,6 +14,10 @@ namespace Kek::Graphics::OpenGL
 {
     class Context
     {
+    public:
+        using LoaderFunc = void* (*)(const char*);
+        [[nodiscard]] bool Initialize(LoaderFunc loader) const;
+
         void BindVertexArray(const VertexArray& vertexArray);
         void DestroyVertexArrays(const std::vector<VertexArray> &vertexArrays);
 

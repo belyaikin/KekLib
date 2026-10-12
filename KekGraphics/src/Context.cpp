@@ -6,6 +6,11 @@
 
 namespace Kek::Graphics::OpenGL
 {
+    bool Context::Initialize(const LoaderFunc loader) const
+    {
+        return gladLoadGL(reinterpret_cast<GLADloadfunc>(loader)) != 0;
+    }
+
     void Context::BindVertexArray(const VertexArray& vertexArray)
     {
         glBindVertexArray(vertexArray.GetId());

@@ -6,8 +6,11 @@
 
 namespace Kek::Application
 {
-    class Application
+    class Program
     {
+        void Initialize();
 
+    public:
+        void Run();
     };
 }
