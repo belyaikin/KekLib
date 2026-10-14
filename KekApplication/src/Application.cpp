@@ -17,7 +17,7 @@ namespace Kek
         this->window.MakeContextCurrent();
 
         const Seconds tickInterval{1.0 / tickRate};
-        const Seconds maxFrameTime{0.25};
+        constexpr Seconds maxFrameTime{0.25};
 
         auto previous = Clock::now();
         Seconds accumulator{0};
