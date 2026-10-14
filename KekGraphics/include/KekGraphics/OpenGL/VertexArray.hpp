@@ -7,7 +7,7 @@
 
 namespace Kek::Graphics::OpenGL
 {
-    class VertexArray : public Object
+    class VertexArray final : public Object
     {
     public:
         explicit VertexArray(const GLuint id) : Object(id) {}

@@ -10,7 +10,7 @@
 
 namespace Kek::Graphics::OpenGL
 {
-    class Shader : public Object
+    class Shader final : public Object
     {
         const std::string path;
 

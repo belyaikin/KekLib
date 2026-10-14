@@ -7,12 +7,11 @@
 #include <vector>
 
 #include "Buffer.hpp"
-#include "Shader.hpp"
 #include "VertexArray.hpp"
 
 namespace Kek::Graphics::OpenGL
 {
-    class Context
+    class Context final
     {
     public:
         using LoaderFunc = void* (*)(const char*);

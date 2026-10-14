@@ -11,10 +11,15 @@ namespace Kek::World
 {
     class Scene
     {
-    private:
-        std::unique_ptr<Nodes::Node> masterNode;
+        std::unique_ptr<Node> masterNode;
+
+        std::vector<Node*> pendingRemoval;
 
     public:
-        explicit Scene(Nodes::Node masterNode) : masterNode(masterNode) {}
+        explicit Scene(std::unique_ptr<Node> masterNode) : masterNode(std::move(masterNode)) {}
+
+        [[nodiscard]] Node *GetMasterNode() const { return masterNode.get(); }
+
+        void Tick();
     };
 }

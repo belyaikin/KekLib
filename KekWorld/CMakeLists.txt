@@ -7,6 +7,7 @@ add_library(KekWorld STATIC
         include/KekWorld/Script.hpp
         src/Node.cpp
         include/KekWorld/Transform.hpp
+        src/Scene.cpp
 )
 
 target_include_directories(KekWorld PUBLIC include)

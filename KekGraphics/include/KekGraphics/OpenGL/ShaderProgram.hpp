@@ -10,7 +10,7 @@
 
 namespace Kek::Graphics::OpenGL
 {
-    class ShaderProgram : public Object
+    class ShaderProgram final : public Object
     {
         const std::vector<const Shader*> shaders;
 

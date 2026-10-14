@@ -10,4 +10,19 @@ namespace Kek::Platform
     {
         return &glfwGetProcAddress;
     }
+
+    void Window::MakeContextCurrent() const
+    {
+        glfwMakeContextCurrent(this->glfwWindow);
+    }
+
+    bool Window::ShouldClose() const
+    {
+        return glfwWindowShouldClose(this->glfwWindow);
+    }
+
+    void Window::PollEvents() const
+    {
+        glfwPollEvents();
+    }
 }

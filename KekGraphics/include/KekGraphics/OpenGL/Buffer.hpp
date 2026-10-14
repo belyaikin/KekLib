@@ -7,7 +7,7 @@
 
 namespace Kek::Graphics::OpenGL
 {
-    class Buffer : public Object
+    class Buffer final : public Object
     {
     public:
         enum class Type

@@ -12,7 +12,7 @@
 
 namespace Kek::Graphics::OpenGL
 {
-    class ObjectFactory
+    class ObjectFactory final
     {
     public:
         [[nodiscard]] static std::vector<VertexArray> CreateVertexArrays(size_t n);

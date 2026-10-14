@@ -6,3 +6,5 @@ add_library(KekApplication STATIC
         src/Application.cpp)
 
 target_include_directories(KekApplication PUBLIC include)
+
+target_link_libraries(KekApplication PUBLIC KekPlatform KekGraphics KekWorld)
