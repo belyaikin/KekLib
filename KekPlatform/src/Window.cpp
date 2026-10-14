@@ -4,6 +4,8 @@
 
 #include "KekPlatform/Window.hpp"
 
+#include "GLFW/glfw3.h"
+
 namespace Kek::Platform
 {
     Window::GLProcLoader Window::GetProcLoader() const
