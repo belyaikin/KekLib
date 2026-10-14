@@ -27,7 +27,7 @@ namespace Kek::Platform
         GLFWwindow *glfwWindow;
 
     public:
-        explicit Window(const WindowSettings settings) :
+        explicit Window(const WindowSettings& settings) :
             settings(settings),
             glfwWindow(
                 glfwCreateWindow(
