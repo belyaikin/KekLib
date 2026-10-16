@@ -8,43 +8,46 @@
 
 namespace Kek::World
 {
-    void Node::AddChildNode(std::unique_ptr<Node> node)
+    void Node::AddChild(std::unique_ptr<Node> node)
     {
         node->parentNode = this;
-        Node* raw = node.get();
-        childNodes.push_back(std::move(node));
-        raw->Start();
+        children.push_back(std::move(node));
     }
 
-    void Node::RemoveChildNode(Node *node)
+    // TODO: this name is misleading, do something about it
+    void Node::RemoveChild(Node *node)
     {
-        std::erase_if(childNodes, [node](const std::unique_ptr<Node>& n) {
-            return n.get() == node;
-        });
+        node->markedForRemoval = true;
     }
 
     void Node::Start() {
-        for (const auto& child : this->childNodes)
-        {
-            child->Start();
-        }
-
-        for (const auto& script : this->components)
-        {
-            script->Start();
-        }
+        for (const auto& component : components) component->Start();
+        for (const auto& child : children) child->Start();
     }
 
     void Node::Tick()
     {
-        for (const auto& child : this->childNodes)
+        if (markedForRemoval) return;
+        for (const auto& component : components) component->Tick();
+        for (const auto& child : children) child->Tick();
+    }
+
+    void Node::Flush()
+    {
+        std::erase_if(children, [](const std::unique_ptr<Node>& childNode) {
+            return childNode->markedForRemoval;
+        });
+
+        std::vector<std::unique_ptr<Node>> batch;
+        batch.swap(pendingChildren);
+        for (auto& node : batch)
         {
-            child->Tick();
+            Node* raw = node.get();
+            AddChild(std::move(node));
+            raw->Start();
         }
 
-        for (const auto& script : this->components)
-        {
-            script->Tick();
-        }
+        for (const auto& child : children)
+            child->Flush();
     }
 }

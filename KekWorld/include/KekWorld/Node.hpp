@@ -15,7 +15,10 @@ namespace Kek::World
     class Node final
     {
         Node *parentNode = nullptr;
-        std::vector<std::unique_ptr<Node>> childNodes;
+        std::vector<std::unique_ptr<Node>> children;
+
+        bool markedForRemoval = false;
+        std::vector<std::unique_ptr<Node>> pendingChildren;
 
         std::vector<std::unique_ptr<Component>> components;
 
@@ -35,17 +38,17 @@ namespace Kek::World
         }
 
         [[nodiscard]]
-        const std::vector<std::unique_ptr<Node>>& GetChildNodes() const
+        const std::vector<std::unique_ptr<Node>>& GetChildren() const
         {
-            return childNodes;
+            return children;
         }
 
         template <typename T>
-        std::vector<T*> GetChildNodesOfType() const
+        std::vector<T*> GetChildrenOfType() const
         {
             std::vector<T*> found = {};
 
-            for (const auto& node : this->childNodes)
+            for (const auto& node : this->children)
             {
                 if (auto child = dynamic_cast<T*>(node.get()))
                     found.push_back(child);
@@ -54,8 +57,8 @@ namespace Kek::World
             return found;
         }
 
-        void AddChildNode(std::unique_ptr<Node> node);
-        void RemoveChildNode(Node *node);
+        void AddChild(std::unique_ptr<Node> node);
+        void RemoveChild(Node *node);
 
         template <typename T, typename... Args>
         T* AttachComponent(Args&&... args)
@@ -76,5 +79,6 @@ namespace Kek::World
 
         void Start();
         void Tick();
+        void Flush();
     };
 }
