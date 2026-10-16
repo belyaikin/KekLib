@@ -15,7 +15,7 @@ namespace Kek::World
     public:
         virtual ~Component() = default;
 
-        // Please don't use this function inside a components code
+        // Please don't use this function inside of a components code
         // because it can be buggy
         void SetNode(Node *node) { this->node = node; }
 
