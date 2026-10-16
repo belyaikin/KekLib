@@ -20,6 +20,7 @@ namespace Kek::World
 
         [[nodiscard]] Node *GetMasterNode() const { return masterNode.get(); }
 
+        void Start();
         void Tick();
     };
 }

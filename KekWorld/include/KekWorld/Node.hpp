@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include "Script.hpp"
@@ -18,9 +19,8 @@ namespace Kek::World
 
         std::vector<std::unique_ptr<Script>> scripts;
 
-    public:
         Transform* transform;
-
+    public:
         Node()
         {
             this->transform = AttachScript<Transform>(Math::Vector3{0, 0, 0});
@@ -72,6 +72,9 @@ namespace Kek::World
             return raw;
         }
 
-        void Tick() const;
+        [[nodiscard]] Transform* GetTransform() const { return transform; }
+
+        void Start();
+        void Tick();
     };
 }

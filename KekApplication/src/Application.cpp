@@ -15,6 +15,7 @@ namespace Kek
         using Seconds = std::chrono::duration<double>;
 
         this->window.MakeContextCurrent();
+        this->scene->Start();
 
         const Seconds tickInterval{1.0 / tickRate};
         constexpr Seconds maxFrameTime{0.25};

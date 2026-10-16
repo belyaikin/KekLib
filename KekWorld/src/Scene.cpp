@@ -6,6 +6,10 @@
 
 namespace Kek::World
 {
+    void Scene::Start() {
+        masterNode->Start();
+    }
+
     void Scene::Tick()
     {
         masterNode->Tick();
