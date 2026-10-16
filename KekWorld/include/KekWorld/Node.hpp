@@ -7,26 +7,26 @@
 #include <memory>
 #include <vector>
 
-#include "Script.hpp"
+#include "Component.hpp"
 #include "Transform.hpp"
 
 namespace Kek::World
 {
-    class Node
+    class Node final
     {
         Node *parentNode = nullptr;
         std::vector<std::unique_ptr<Node>> childNodes;
 
-        std::vector<std::unique_ptr<Script>> scripts;
+        std::vector<std::unique_ptr<Component>> components;
 
         Transform* transform;
     public:
         Node()
         {
-            this->transform = AttachScript<Transform>(Math::Vector3{0, 0, 0});
+            this->transform = AttachComponent<Transform>(Math::Vector3{0, 0, 0});
         }
 
-        virtual ~Node() = default;
+        ~Node() = default;
 
         [[nodiscard]]
         Node *GetParentNode() const
@@ -58,16 +58,16 @@ namespace Kek::World
         void RemoveChildNode(Node *node);
 
         template <typename T, typename... Args>
-        T* AttachScript(Args&&... args)
+        T* AttachComponent(Args&&... args)
         {
-            static_assert(std::is_base_of_v<Script, T>, "T must derive from Script");
+            static_assert(std::is_base_of_v<Component, T>, "T must derive from Component");
 
-            auto script = std::make_unique<T>(std::forward<Args>(args)...);
+            auto component = std::make_unique<T>(std::forward<Args>(args)...);
 
-            T* raw = script.get();
+            T* raw = component.get();
             raw->SetNode(this);
 
-            this->scripts.push_back(std::move(script));
+            this->components.push_back(std::move(component));
 
             return raw;
         }

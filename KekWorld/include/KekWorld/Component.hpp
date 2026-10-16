@@ -8,13 +8,15 @@ namespace Kek::World
 {
     class Node;
 
-    class Script
+    class Component
     {
         Node* node = nullptr;
 
     public:
-        virtual ~Script() = default;
+        virtual ~Component() = default;
 
+        // Please don't use this function inside a components code
+        // because it can be buggy
         void SetNode(Node *node) { this->node = node; }
 
         virtual void Start();

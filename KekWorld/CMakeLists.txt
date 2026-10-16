@@ -3,11 +3,9 @@ project(KekWorld)
 
 add_library(KekWorld STATIC
         include/KekWorld/Node.hpp
-        include/KekWorld/Scene.hpp
-        include/KekWorld/Script.hpp
+        include/KekWorld/Component.hpp
         src/Node.cpp
         include/KekWorld/Transform.hpp
-        src/Scene.cpp
 )
 
 target_include_directories(KekWorld PUBLIC include)

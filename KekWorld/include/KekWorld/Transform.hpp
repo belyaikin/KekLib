@@ -4,12 +4,12 @@
 
 #pragma once
 
-#include "Script.hpp"
+#include "Component.hpp"
 #include "KekMath/Vector3.hpp"
 
 namespace Kek::World
 {
-    class Transform final : public Script
+    class Transform final : public Component
     {
         Math::Vector3 position;
 

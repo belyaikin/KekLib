@@ -29,7 +29,7 @@ namespace Kek::World
             child->Start();
         }
 
-        for (const auto& script : this->scripts)
+        for (const auto& script : this->components)
         {
             script->Start();
         }
@@ -42,7 +42,7 @@ namespace Kek::World
             child->Tick();
         }
 
-        for (const auto& script : this->scripts)
+        for (const auto& script : this->components)
         {
             script->Tick();
         }
