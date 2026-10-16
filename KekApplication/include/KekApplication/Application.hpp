@@ -5,7 +5,7 @@
 #pragma once
 
 #include "KekPlatform/Window.hpp"
-#include "KekWorld/Scene.hpp"
+#include "KekWorld/Node.hpp"
 
 #include <memory>
 
@@ -17,12 +17,12 @@ namespace Kek
         unsigned int tickRate = 20;
 
         Platform::Window window;
-        std::unique_ptr<World::Scene> scene;
+        std::unique_ptr<World::Node> root;
 
     public:
         explicit Application(const Platform::WindowSettings &windowSettings,
-                            std::unique_ptr<World::Scene> scene)
-            : window(windowSettings), scene(std::move(scene)) {}
+                            std::unique_ptr<World::Node> scene)
+            : window(windowSettings), root(std::move(scene)) {}
 
         [[nodiscard]] unsigned int GetMaximumFramesPerSecond() const { return maximumFramesPerSecond; }
         void SetMaximumFramesPerSecond(const unsigned int maximumFramesPerSecond) { this->maximumFramesPerSecond = maximumFramesPerSecond; }
@@ -30,8 +30,8 @@ namespace Kek
         [[nodiscard]] unsigned int GetTickRate() const { return tickRate; }
         void SetTickRate(const unsigned int tickRate) { this->tickRate = tickRate; }
 
-        std::unique_ptr<World::Scene>& GetScene() { return scene; }
-        void SetScene(std::unique_ptr<World::Scene> &scene) { this->scene = std::move(scene); }
+        std::unique_ptr<World::Node>& GetRootNode() { return root; }
+        void SetRootNode(std::unique_ptr<World::Node> &root) { this->root = std::move(root); }
 
         void Run() const;
     };
