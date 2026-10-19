@@ -12,6 +12,7 @@
 
 namespace Kek::World
 {
+    /// @brief The building block of a game world.
     class Node final
     {
         Node *parentNode = nullptr;
@@ -43,6 +44,9 @@ namespace Kek::World
             return children;
         }
 
+        /// @brief Finds the child nodes of the specified type.
+        /// @tparam T The type of the child nodes to find.
+        /// @return A list of raw pointers to nodes.
         template <typename T>
         std::vector<T*> GetChildrenOfType() const
         {
@@ -57,9 +61,25 @@ namespace Kek::World
             return found;
         }
 
+        /// @brief Immediately adds a child node without flushing.
+        ///
+        /// Use this method when you're assembling a node hierarchy before runtime.
         void AddChild(std::unique_ptr<Node> node);
-        void RemoveChild(Node *node);
 
+        /// @brief Adds node to the addition queue.
+        ///
+        /// Use this method during runtime to spawn nodes.
+        void QueueAddChild(std::unique_ptr<Node> node);
+
+        /// @brief Mark the current node for deletion during the next flush.
+        void QueueFree(Node *node);
+
+        [[nodiscard]] bool IsQueuedForRemoval() const { return markedForRemoval; }
+
+        /// @brief Attaches a component to the current node.
+        /// @tparam T The type of component to attach (must derive from Component).
+        /// @param args The arguments forwarded to the component's constructor.
+        /// @return A raw pointer to the newly attached component instance.
         template <typename T, typename... Args>
         T* AttachComponent(Args&&... args)
         {
@@ -79,6 +99,8 @@ namespace Kek::World
 
         void Start();
         void Tick();
+
+        /// @brief Recursively clears the queues.
         void Flush();
     };
 }

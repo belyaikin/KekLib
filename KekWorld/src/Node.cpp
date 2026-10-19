@@ -14,13 +14,18 @@ namespace Kek::World
         children.push_back(std::move(node));
     }
 
-    // TODO: this name is misleading, do something about it
-    void Node::RemoveChild(Node *node)
+    void Node::QueueAddChild(std::unique_ptr<Node> node)
+    {
+        pendingChildren.push_back(std::move(node));
+    }
+
+    void Node::QueueFree(Node *node)
     {
         node->markedForRemoval = true;
     }
 
-    void Node::Start() {
+    void Node::Start()
+    {
         for (const auto& component : components) component->Start();
         for (const auto& child : children) child->Start();
     }
