@@ -19,7 +19,7 @@ namespace Kek::World
         // because it can be buggy
         void SetNode(Node *node) { this->node = node; }
 
-        virtual void Start();
-        virtual void Tick();
+        virtual void Start() {}
+        virtual void Tick() {}
     };
 }
