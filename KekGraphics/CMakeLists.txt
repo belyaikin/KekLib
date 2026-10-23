@@ -14,11 +14,12 @@ add_library(KekGraphics STATIC
         include/KekGraphics/OpenGL/ShaderProgram.hpp
         include/KekGraphics/OpenGL/ObjectFactory.hpp
         src/ObjectFactory.cpp
-        include/KekGraphics/Components/MeshDisplay.hpp)
+        include/KekGraphics/Components/MeshDisplay.hpp
+        deps/glad/src/gl.c
+)
 
-target_include_directories(KekGraphics PUBLIC include)
-
-target_include_directories(KekGraphics PRIVATE
+target_include_directories(KekGraphics PUBLIC
+        include
         deps/glad/include
 )
 
