@@ -25,4 +25,10 @@ namespace Kek::Graphics::OpenGL
     {
         glUniform1f(GetUniformLocation(name), value);
     }
+
+    void ShaderProgram::SetMatrix4(const std::string& name, const Math::Matrix4& value) const
+    {
+        // Matrix4 is column-major already, so no transpose is needed.
+        glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, value.Data());
+    }
 }

@@ -21,12 +21,14 @@ namespace Kek::Graphics
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aColor;
 
+uniform mat4 uModel;
+
 out vec3 vColor;
 
 void main()
 {
     vColor = aColor;
-    gl_Position = vec4(aPosition, 1.0);
+    gl_Position = uModel * vec4(aPosition, 1.0);
 }
 )";
 
@@ -69,18 +71,24 @@ void main()
         Context::Clear();
         Context::UseProgram(program);
 
-        DrawNode(root);
+        DrawNode(root, Math::Matrix4::Identity());
     }
 
-    void Renderer::DrawNode(const World::Node& node)
+    void Renderer::DrawNode(const World::Node& node, const Math::Matrix4& parentWorld)
     {
+        // A node is positioned relative to its parent, so world = parentWorld * local.
+        const Math::Matrix4 world = parentWorld * node.GetTransform()->GetLocalMatrix();
+
         if (const auto* display = node.GetComponent<Components::MeshDisplay>())
         {
             if (const Mesh* mesh = display->GetMesh())
+            {
+                program.SetMatrix4("uModel", world);
                 mesh->Draw();
+            }
         }
 
         for (const auto& child : node.GetChildren())
-            DrawNode(*child);
+            DrawNode(*child, world);
     }
 }
