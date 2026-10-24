@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Buffer.hpp"
+#include "ShaderProgram.hpp"
 #include "VertexArray.hpp"
 
 namespace Kek::Graphics::OpenGL
@@ -21,6 +22,8 @@ namespace Kek::Graphics::OpenGL
         static void BindVertexArray(const VertexArray& vertexArray);
 
         static void BindBuffer(const Buffer& buffer, Buffer::Type type);
+
+        static void UseProgram(const ShaderProgram& program);
 
         static void SetClearColor(float r, float g, float b, float a);
 

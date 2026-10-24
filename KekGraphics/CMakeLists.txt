@@ -14,6 +14,7 @@ add_library(KekGraphics STATIC
         include/KekGraphics/OpenGL/ShaderProgram.hpp
         include/KekGraphics/OpenGL/ObjectFactory.hpp
         src/ObjectFactory.cpp
+        src/ShaderProgram.cpp
         include/KekGraphics/Components/MeshDisplay.hpp
         deps/glad/src/gl.c
 )

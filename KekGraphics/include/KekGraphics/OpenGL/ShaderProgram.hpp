@@ -3,7 +3,7 @@
 //
 
 #pragma once
-
+#include <string>
 #include "Object.hpp"
 
 namespace Kek::Graphics::OpenGL
@@ -26,8 +26,13 @@ namespace Kek::Graphics::OpenGL
         }
 
         ~ShaderProgram() { Release(); }
+        // Uniform setters: the program must be in use (see Context::UseProgram).
+        void SetBool(const std::string& name, bool value) const;
+        void SetInt(const std::string& name, int value) const;
+        void SetFloat(const std::string& name, float value) const;
 
     private:
+        [[nodiscard]] GLint GetUniformLocation(const std::string& name) const;
         void Release()
         {
             if (id != 0) glDeleteProgram(id);

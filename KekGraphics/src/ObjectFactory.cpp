@@ -2,15 +2,33 @@
 // Created by Dmitriy on 01.10.2026.
 //
 
+#include <stdexcept>
+#include <string>
 #include <utility>
 
 #include "KekGraphics/OpenGL/ObjectFactory.hpp"
 
-#include "KekGraphics/OpenGL/Context.hpp"
-#include "KekGraphics/OpenGL/Shader.hpp"
-
 namespace Kek::Graphics::OpenGL
 {
+    namespace
+    {
+        std::string ReadInfoLog(const GLuint id, const bool isProgram)
+        {
+            GLint length = 0;
+            if (isProgram) glGetProgramiv(id, GL_INFO_LOG_LENGTH, &length);
+            else glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+
+            std::string log(static_cast<size_t>(length > 0 ? length : 1), '\0');
+            GLsizei written = 0;
+
+            if (isProgram) glGetProgramInfoLog(id, static_cast<GLsizei>(log.size()), &written, log.data());
+            else glGetShaderInfoLog(id, static_cast<GLsizei>(log.size()), &written, log.data());
+
+            log.resize(static_cast<size_t>(written));
+            return log;
+        }
+    }
+
     std::vector<VertexArray> ObjectFactory::CreateVertexArrays(const size_t n)
     {
         std::vector<GLuint> vertexArraysIds(n);
@@ -53,10 +71,18 @@ namespace Kek::Graphics::OpenGL
             case Shader::Type::Fragment: shaderId = glCreateShader(GL_FRAGMENT_SHADER); break;
         }
 
+        Shader shader{shaderId};
+
         glShaderSource(shaderId, 1, &source, nullptr);
+        glCompileShader(shaderId);
 
-        return Shader{shaderId};
+        GLint compiled = 0;
+        glGetShaderiv(shaderId, GL_COMPILE_STATUS, &compiled);
 
+        if (compiled == GL_FALSE)
+            throw std::runtime_error("Shader compilation failed:\n" + ReadInfoLog(shaderId, false));
+
+        return shader;
     }
 
     ShaderProgram ObjectFactory::CreateShaderProgram(std::vector<const Shader *> shaders)
@@ -66,6 +92,19 @@ namespace Kek::Graphics::OpenGL
         for (const auto shader : shaders)
         {
             glAttachShader(shaderProgram.GetId(), shader->GetId());
+        }
+
+        glLinkProgram(shaderProgram.GetId());
+
+        GLint linked = 0;
+        glGetProgramiv(shaderProgram.GetId(), GL_LINK_STATUS, &linked);
+
+        if (linked == GL_FALSE)
+            throw std::runtime_error("Shader program linking failed:\n" + ReadInfoLog(shaderProgram.GetId(), true));
+
+        for (const auto shader : shaders)
+        {
+            glDetachShader(shaderProgram.GetId(), shader->GetId());
         }
 
         return shaderProgram;

@@ -9,3 +9,6 @@ target_link_libraries(Sample01_Window PRIVATE KekApplication)
 
 add_executable(Sample02_GLObjects 02_GLObjects/main.cpp)
 target_link_libraries(Sample02_GLObjects PRIVATE KekApplication)
+
+add_executable(Sample03_Shaders 03_Shaders/main.cpp)
+target_link_libraries(Sample03_Shaders PRIVATE KekApplication)

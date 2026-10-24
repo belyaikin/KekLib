@@ -23,6 +23,11 @@ namespace Kek::Graphics::OpenGL
             case Buffer::Type::Vertex: glBindBuffer(GL_ARRAY_BUFFER, buffer.GetId()); break;
         }
     }
+    void Context::UseProgram(const ShaderProgram& program)
+ {
+         glUseProgram(program.GetId());
+ }
+
 
     void Context::SetClearColor(const float r, const float g, const float b, const float a)
     {
