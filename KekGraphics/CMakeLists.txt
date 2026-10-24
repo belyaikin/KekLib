@@ -19,6 +19,8 @@ add_library(KekGraphics STATIC
         src/Mesh.cpp
         src/Model.cpp
         src/MeshDisplay.cpp
+        include/KekGraphics/Components/Camera.hpp
+        src/Camera.cpp
         include/KekGraphics/Renderer.hpp
         src/Renderer.cpp
         include/KekGraphics/Components/MeshDisplay.hpp

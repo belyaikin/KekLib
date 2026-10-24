@@ -30,3 +30,7 @@ target_link_libraries(Sample08_Math PRIVATE KekWorld)
 
 add_executable(Sample09_Transform 09_Transform/main.cpp)
 target_link_libraries(Sample09_Transform PRIVATE KekApplication)
+
+
+add_executable(Sample10_Camera 10_Camera/main.cpp)
+target_link_libraries(Sample10_Camera PRIVATE KekApplication)

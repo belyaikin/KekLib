@@ -4,6 +4,7 @@
 #include "KekWorld/Node.hpp"
 #include "OpenGL/ShaderProgram.hpp"
 #include "KekMath/Matrix4.hpp"
+#include "Components/Camera.hpp"
 
 namespace Kek::Graphics
 {
@@ -14,6 +15,8 @@ namespace Kek::Graphics
 
         int viewportWidth = 1;
         int viewportHeight = 1;
+
+        [[nodiscard]] static const Components::Camera* FindCamera(const World::Node& node);
 
         void DrawNode(const World::Node& node, const Math::Matrix4& parentWorld);
 
