@@ -4,7 +4,7 @@
 // Console-only checks (no window). Each commit that touches KekMath/Transform adds checks here.
 #include <cmath>
 #include <iostream>
-
+#include "KekWorld/Transform.hpp"
 
 #include "KekMath/Vector3.hpp"
 #include "KekMath/Matrix4.hpp"
@@ -62,6 +62,22 @@ int main()
     const auto projection = Matrix4::Perspective(1.0471976f, 1.0f, 0.1f, 100.0f);
     Check(Near(projection.TransformPoint(Vector3{0, 0, -0.1f}).Z(), -1.0f), "Matrix4 perspective: near plane -> z = -1");
     Check(Near(projection.TransformPoint(Vector3{0, 0, -100.0f}).Z(), 1.0f), "Matrix4 perspective: far plane -> z = +1");
+
+    
+    //Transform
+    Kek::World::Transform transform{Vector3{1, 2, 3}};
+    Check(Near(transform.GetScale(), Vector3{1, 1, 1}), "Transform default scale is 1");
+    Check(Near(transform.GetRotation(), Vector3{0, 0, 0}), "Transform default rotation is 0");
+    Check(Near(transform.GetLocalMatrix().TransformPoint(Vector3{0, 0, 0}), Vector3{1, 2, 3}), "Transform local matrix moves the origin to position");
+
+    transform.SetScale(Vector3{2, 2, 2});
+    Check(Near(transform.GetLocalMatrix().TransformPoint(Vector3{1, 0, 0}), Vector3{3, 2, 3}), "Transform: scale, then translate");
+
+    transform.SetRotation(Vector3{0, 0, HalfPi});
+    Check(Near(transform.GetLocalMatrix().TransformPoint(Vector3{1, 0, 0}), Vector3{1, 4, 3}), "Transform: scale, rotate, then translate");
+
+    transform.Rotate(Vector3{0, 0, HalfPi});
+    Check(Near(transform.GetRotation(), Vector3{0, 0, 2 * HalfPi}), "Transform::Rotate accumulates");
 
     std::cout << (failures == 0 ? "ALL OK\n" : "SOME CHECKS FAILED\n");
     return failures == 0 ? 0 : 1;
