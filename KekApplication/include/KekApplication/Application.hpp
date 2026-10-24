@@ -7,6 +7,8 @@
 #include "KekPlatform/Window.hpp"
 #include "KekWorld/Node.hpp"
 
+#include "KekGraphics/Renderer.hpp"
+
 #include <memory>
 #include <utility>
 
@@ -19,6 +21,10 @@ namespace Kek
 
         Platform::Window window;
         Graphics::OpenGL::Context glContext;
+
+        // Created in Run(), once OpenGL is loaded. Declared before `root`, so it is destroyed after the scene
+        // and before the window.
+        std::unique_ptr<Graphics::Renderer> renderer;
         std::unique_ptr<World::Node> root;
 
     public:

@@ -20,7 +20,8 @@ namespace Kek
         if (!this->glContext.Initialize(this->window.GetProcLoader()))
         throw std::runtime_error("Failed to load OpenGL functions");
 
-        Graphics::OpenGL::Context::SetClearColor(0.10f, 0.20f, 0.40f, 1.0f);
+        this->renderer = std::make_unique<Graphics::Renderer>();
+
 
         this->root->Start();
 
@@ -53,7 +54,7 @@ namespace Kek
             (void)alpha;
 
             // TODO: render here
-            Graphics::OpenGL::Context::Clear();
+            this->renderer->Render(*this->root);
 
             this->window.SwapBuffers();
 

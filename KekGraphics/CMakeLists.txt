@@ -19,6 +19,8 @@ add_library(KekGraphics STATIC
         src/Mesh.cpp
         src/Model.cpp
         src/MeshDisplay.cpp
+        include/KekGraphics/Renderer.hpp
+        src/Renderer.cpp
         include/KekGraphics/Components/MeshDisplay.hpp
         deps/glad/src/gl.c
 )
