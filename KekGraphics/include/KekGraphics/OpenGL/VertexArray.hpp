@@ -11,5 +11,26 @@ namespace Kek::Graphics::OpenGL
     {
     public:
         explicit VertexArray(const GLuint id) : Object(id) {}
+
+        VertexArray(VertexArray&&) noexcept = default;
+
+        VertexArray& operator=(VertexArray&& other) noexcept
+        {
+            if (this != &other)
+            {
+                Release();
+                Object::operator=(std::move(other));
+            }
+            return *this;
+        }
+
+        ~VertexArray() { Release(); }
+
+    private:
+        void Release()
+        {
+            if (id != 0) glDeleteVertexArrays(1, &id);
+            id = 0;
+        }
     };
 }

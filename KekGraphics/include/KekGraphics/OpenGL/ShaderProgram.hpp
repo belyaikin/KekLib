@@ -3,22 +3,35 @@
 //
 
 #pragma once
-#include <vector>
 
 #include "Object.hpp"
-#include "Shader.hpp"
 
 namespace Kek::Graphics::OpenGL
 {
     class ShaderProgram final : public Object
     {
-        const std::vector<const Shader*> shaders;
-
     public:
-        explicit ShaderProgram(const GLuint id, std::vector<const Shader*> shaders) :
-            Object(id),
-            shaders(std::move(shaders)) {}
+        explicit ShaderProgram(const GLuint id) : Object(id) {}
 
-        [[nodiscard]] const std::vector<const Shader*>& GetShaders() const { return shaders; }
+        ShaderProgram(ShaderProgram&&) noexcept = default;
+
+        ShaderProgram& operator=(ShaderProgram&& other) noexcept
+        {
+            if (this != &other)
+            {
+                Release();
+                Object::operator=(std::move(other));
+            }
+            return *this;
+        }
+
+        ~ShaderProgram() { Release(); }
+
+    private:
+        void Release()
+        {
+            if (id != 0) glDeleteProgram(id);
+            id = 0;
+        }
     };
 }

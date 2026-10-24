@@ -6,3 +6,6 @@ target_link_libraries(Sample00_Smoke PRIVATE KekWorld)
 
 add_executable(Sample01_Window 01_Window/main.cpp)
 target_link_libraries(Sample01_Window PRIVATE KekApplication)
+
+add_executable(Sample02_GLObjects 02_GLObjects/main.cpp)
+target_link_libraries(Sample02_GLObjects PRIVATE KekApplication)

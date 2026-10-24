@@ -16,30 +16,21 @@ namespace Kek::Graphics::OpenGL
         glBindVertexArray(vertexArray.GetId());
     }
 
-    void Context::DestroyVertexArrays(const std::vector<VertexArray>& vertexArrays)
+    void Context::BindBuffer(const Buffer& buffer, const Buffer::Type type)
     {
-        std::vector<GLuint> ids;
-        ids.reserve(vertexArrays.size());
-
-        for (const auto& vertexArray : vertexArrays) {
-            ids.push_back(vertexArray.GetId());
-        }
-
-        glDeleteVertexArrays(static_cast<GLsizei>(ids.size()), ids.data());
-    }
-
-    void Context::BindBuffer(const Buffer& buffer, const Buffer::Type type) {
-        switch (type) {
-            case Buffer::Type::Vertex: glBindBuffer(GL_ARRAY_BUFFER, buffer.GetId());
+        switch (type)
+        {
+            case Buffer::Type::Vertex: glBindBuffer(GL_ARRAY_BUFFER, buffer.GetId()); break;
         }
     }
+
     void Context::SetClearColor(const float r, const float g, const float b, const float a)
-{
-    glClearColor(r, g, b, a);
+    {
+        glClearColor(r, g, b, a);
     }
 
-     void Context::Clear()
+    void Context::Clear()
     {
-      glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT);
     }
 }

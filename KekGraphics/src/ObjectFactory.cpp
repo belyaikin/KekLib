@@ -55,14 +55,15 @@ namespace Kek::Graphics::OpenGL
 
         glShaderSource(shaderId, 1, &source, nullptr);
 
-        return Shader{shaderId, source};
+        return Shader{shaderId};
+
     }
 
     ShaderProgram ObjectFactory::CreateShaderProgram(std::vector<const Shader *> shaders)
     {
-        const auto shaderProgram = ShaderProgram{ glCreateProgram(), std::move(shaders) };
+        ShaderProgram shaderProgram{ glCreateProgram() };
 
-        for (const auto shader : shaderProgram.GetShaders())
+        for (const auto shader : shaders)
         {
             glAttachShader(shaderProgram.GetId(), shader->GetId());
         }

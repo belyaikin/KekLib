@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <vector>
-
 #include "Buffer.hpp"
 #include "VertexArray.hpp"
 
@@ -17,10 +15,12 @@ namespace Kek::Graphics::OpenGL
         using LoaderFunc = void* (*)(const char*);
         [[nodiscard]] bool Initialize(LoaderFunc loader) const;
 
-        void BindVertexArray(const VertexArray& vertexArray);
-        void DestroyVertexArrays(const std::vector<VertexArray> &vertexArrays);
+        // Everything below only talks to the current OpenGL context,
+        // so it is static and can be called from anywhere after Initialize().
 
-        void BindBuffer(const Buffer& buffer, Buffer::Type type);
+        static void BindVertexArray(const VertexArray& vertexArray);
+
+        static void BindBuffer(const Buffer& buffer, Buffer::Type type);
 
         static void SetClearColor(float r, float g, float b, float a);
 

@@ -3,8 +3,6 @@
 //
 
 #pragma once
-#include <string>
-#include <utility>
 
 #include "Object.hpp"
 
@@ -12,18 +10,33 @@ namespace Kek::Graphics::OpenGL
 {
     class Shader final : public Object
     {
-        const std::string path;
-
     public:
         enum class Type
         {
             Vertex, Fragment
         };
 
-        explicit Shader(const GLuint id, std::string path) : Object(id), path(std::move(path)){}
+        explicit Shader(const GLuint id) : Object(id) {}
 
-        void SetBool(const std::string &name, bool value) const;
-        void SetInt(const std::string &name, int value) const;
-        void SetFloat(const std::string &name, float value) const;
+        Shader(Shader&&) noexcept = default;
+
+        Shader& operator=(Shader&& other) noexcept
+        {
+            if (this != &other)
+            {
+                Release();
+                Object::operator=(std::move(other));
+            }
+            return *this;
+        }
+
+        ~Shader() { Release(); }
+
+    private:
+        void Release()
+        {
+            if (id != 0) glDeleteShader(id);
+            id = 0;
+        }
     };
 }
