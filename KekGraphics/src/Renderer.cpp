@@ -54,6 +54,16 @@ void main()
         Context::SetClearColor(0.10f, 0.20f, 0.40f, 1.0f);
     }
 
+    void Renderer::Resize(const int width, const int height)
+    {
+        if (width == viewportWidth && height == viewportHeight) return;
+
+        viewportWidth = width;
+        viewportHeight = height;
+
+        Context::SetViewport(0, 0, width, height);
+    }
+
     void Renderer::Render(const World::Node& root)
     {
         Context::Clear();

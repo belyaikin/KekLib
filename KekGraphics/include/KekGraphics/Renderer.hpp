@@ -11,10 +11,16 @@ namespace Kek::Graphics
     {
         OpenGL::ShaderProgram program;
 
+        int viewportWidth = 1;
+        int viewportHeight = 1;
+
         void DrawNode(const World::Node& node);
 
     public:
         Renderer();
+
+        /// @brief Tells the renderer the size (in pixels) of the framebuffer it draws into.
+        void Resize(int width, int height);
 
         /// @brief Clears the screen and draws every MeshDisplay found in the tree.
         void Render(const World::Node& root);

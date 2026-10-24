@@ -72,6 +72,11 @@ namespace Kek::Graphics::OpenGL
         glUseProgram(program.GetId());
     }
 
+    void Context::SetViewport(const int x, const int y, const int width, const int height)
+    {
+        glViewport(x, y, width, height);
+    }
+
     void Context::SetClearColor(const float r, const float g, const float b, const float a)
     {
         glClearColor(r, g, b, a);

@@ -39,6 +39,8 @@ namespace Kek::Graphics::OpenGL
 
         [[nodiscard]] static GLenum GetError();
 
+        static void SetViewport(int x, int y, int width, int height);
+
         static void UseProgram(const ShaderProgram& program);
 
         static void SetClearColor(float r, float g, float b, float a);

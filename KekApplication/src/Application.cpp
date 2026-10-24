@@ -54,6 +54,10 @@ namespace Kek
             (void)alpha;
 
             // TODO: render here
+            
+            const auto framebufferSize = this->window.GetFramebufferSize();
+            this->renderer->Resize(framebufferSize.width, framebufferSize.height);
+
             this->renderer->Render(*this->root);
 
             this->window.SwapBuffers();
