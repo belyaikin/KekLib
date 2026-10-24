@@ -8,6 +8,7 @@
 #include "KekWorld/Node.hpp"
 
 #include <memory>
+#include <utility>
 
 namespace Kek
 {

@@ -4,6 +4,7 @@
 
 #include "KekApplication/Application.hpp"
 
+#include <chrono>
 #include <thread>
 
 namespace Kek
@@ -46,6 +47,8 @@ namespace Kek
             (void)alpha;
 
             // TODO: render here
+
+            this->window.SwapBuffers();
 
             if (maximumFramesPerSecond > 0)
             {
