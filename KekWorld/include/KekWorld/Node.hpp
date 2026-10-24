@@ -94,7 +94,19 @@ namespace Kek::World
 
             return raw;
         }
+        /// @brief Finds the first attached component of the given type.
+        /// @return A raw pointer to the component, or nullptr if there is none.
+        template <typename T>
+        [[nodiscard]] T* GetComponent() const
+        {
+            for (const auto& component : this->components)
+            {
+                if (auto found = dynamic_cast<T*>(component.get()))
+                    return found;
+            }
 
+            return nullptr;
+        }
         [[nodiscard]] Transform* GetTransform() const { return transform; }
 
         void Start();

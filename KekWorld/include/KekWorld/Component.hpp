@@ -19,6 +19,9 @@ namespace Kek::World
         // because it can be buggy
         void SetNode(Node *node) { this->node = node; }
 
+        /// @brief The node this component is attached to.
+        [[nodiscard]] Node* GetNode() const { return node; }
+
         virtual void Start() {}
         virtual void Tick() {}
     };
