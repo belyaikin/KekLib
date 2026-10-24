@@ -24,3 +24,6 @@ target_link_libraries(Sample06_Triangle PRIVATE KekApplication)
 
 add_executable(Sample07_Quad 07_Quad/main.cpp)
 target_link_libraries(Sample07_Quad PRIVATE KekApplication)
+
+add_executable(Sample08_Math 08_Math/main.cpp)
+target_link_libraries(Sample08_Math PRIVATE KekWorld)
