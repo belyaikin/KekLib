@@ -25,5 +25,7 @@ namespace Kek::Graphics
 
         /// @brief A colored triangle in the XY plane, 1 unit wide.
         [[nodiscard]] static Model Triangle();
+        /// @brief A colored 1x1 quad in the XY plane, built from 4 vertices and 6 indices.
+        [[nodiscard]] static Model Quad();
     };
 }

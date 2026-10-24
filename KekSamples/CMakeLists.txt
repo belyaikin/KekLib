@@ -21,3 +21,6 @@ target_link_libraries(Sample05_MeshDisplay PRIVATE KekApplication)
 
 add_executable(Sample06_Triangle 06_Triangle/main.cpp)
 target_link_libraries(Sample06_Triangle PRIVATE KekApplication)
+
+add_executable(Sample07_Quad 07_Quad/main.cpp)
+target_link_libraries(Sample07_Quad PRIVATE KekApplication)
