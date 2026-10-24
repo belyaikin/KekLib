@@ -21,5 +21,10 @@ namespace Kek::Graphics::OpenGL
         void DestroyVertexArrays(const std::vector<VertexArray> &vertexArrays);
 
         void BindBuffer(const Buffer& buffer, Buffer::Type type);
+
+        static void SetClearColor(float r, float g, float b, float a);
+
+        /// @brief Clears the color buffer of the current framebuffer.
+        static void Clear();
     };
 }

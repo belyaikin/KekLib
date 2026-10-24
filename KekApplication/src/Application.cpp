@@ -5,17 +5,23 @@
 #include "KekApplication/Application.hpp"
 
 #include <chrono>
+#include <stdexcept>
 #include <thread>
 
 namespace Kek
 {
     // TODO: Create ApplicationLoop class or something like that to not put all of this here
-    void Application::Run() const
+    void Application::Run()
     {
         using Clock = std::chrono::steady_clock;
         using Seconds = std::chrono::duration<double>;
 
         this->window.MakeContextCurrent();
+        if (!this->glContext.Initialize(this->window.GetProcLoader()))
+        throw std::runtime_error("Failed to load OpenGL functions");
+
+        Graphics::OpenGL::Context::SetClearColor(0.10f, 0.20f, 0.40f, 1.0f);
+
         this->root->Start();
 
         const Seconds tickInterval{1.0 / tickRate};
@@ -47,6 +53,7 @@ namespace Kek
             (void)alpha;
 
             // TODO: render here
+            Graphics::OpenGL::Context::Clear();
 
             this->window.SwapBuffers();
 

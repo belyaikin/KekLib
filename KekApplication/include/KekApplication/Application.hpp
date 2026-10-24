@@ -3,7 +3,7 @@
 //
 
 #pragma once
-
+#include "KekGraphics/OpenGL/Context.hpp"
 #include "KekPlatform/Window.hpp"
 #include "KekWorld/Node.hpp"
 
@@ -18,6 +18,7 @@ namespace Kek
         unsigned int tickRate = 20;
 
         Platform::Window window;
+        Graphics::OpenGL::Context glContext;
         std::unique_ptr<World::Node> root;
 
     public:
@@ -34,6 +35,6 @@ namespace Kek
         std::unique_ptr<World::Node>& GetRootNode() { return root; }
         void SetRootNode(std::unique_ptr<World::Node> &root) { this->root = std::move(root); }
 
-        void Run() const;
+        void Run();
     };
 }

@@ -33,4 +33,13 @@ namespace Kek::Graphics::OpenGL
             case Buffer::Type::Vertex: glBindBuffer(GL_ARRAY_BUFFER, buffer.GetId());
         }
     }
+    void Context::SetClearColor(const float r, const float g, const float b, const float a)
+{
+    glClearColor(r, g, b, a);
+    }
+
+     void Context::Clear()
+    {
+      glClear(GL_COLOR_BUFFER_BIT);
+    }
 }
