@@ -3,14 +3,27 @@
 //
 
 #pragma once
+#include <utility>
 #include <vector>
 
 #include "Vertex.hpp"
 
 namespace Kek::Graphics
 {
+    /// @brief CPU-side geometry. If there are no indices, vertices are drawn in order.
     class Model
     {
         std::vector<Vertex> vertices;
+        std::vector<unsigned int> indices;
+
+    public:
+        explicit Model(std::vector<Vertex> vertices, std::vector<unsigned int> indices = {})
+            : vertices(std::move(vertices)), indices(std::move(indices)) {}
+
+        [[nodiscard]] const std::vector<Vertex>& GetVertices() const { return vertices; }
+        [[nodiscard]] const std::vector<unsigned int>& GetIndices() const { return indices; }
+
+        /// @brief A colored triangle in the XY plane, 1 unit wide.
+        [[nodiscard]] static Model Triangle();
     };
 }

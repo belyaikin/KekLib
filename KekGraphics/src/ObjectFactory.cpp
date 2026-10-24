@@ -60,6 +60,19 @@ namespace Kek::Graphics::OpenGL
 
         return buffers;
     }
+    VertexArray ObjectFactory::CreateVertexArray()
+    {
+        GLuint id = 0;
+        glGenVertexArrays(1, &id);
+        return VertexArray{id};
+    }
+
+    Buffer ObjectFactory::CreateBuffer()
+    {
+        GLuint id = 0;
+        glGenBuffers(1, &id);
+        return Buffer{id};
+    }
 
     Shader ObjectFactory::CreateShader(const Shader::Type type, const char *source)
     {

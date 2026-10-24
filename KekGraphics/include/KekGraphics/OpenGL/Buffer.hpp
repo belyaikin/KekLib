@@ -12,7 +12,7 @@ namespace Kek::Graphics::OpenGL
     public:
         enum class Type
         {
-            Vertex
+            Vertex, Index
         };
 
         explicit Buffer(const GLuint id) : Object(id) {}

@@ -19,6 +19,10 @@ namespace Kek::Graphics::OpenGL
 
         [[nodiscard]] static std::vector<Buffer> CreateBuffers(size_t n);
 
+        [[nodiscard]] static VertexArray CreateVertexArray();
+
+        [[nodiscard]] static Buffer CreateBuffer();
+
         [[nodiscard]] static Shader CreateShader(Shader::Type type, const char *source);
 
         [[nodiscard]] static ShaderProgram CreateShaderProgram(std::vector<const Shader *> shaders);
