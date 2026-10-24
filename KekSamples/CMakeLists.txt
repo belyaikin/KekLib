@@ -15,3 +15,6 @@ target_link_libraries(Sample03_Shaders PRIVATE KekApplication)
 
 add_executable(Sample04_Mesh 04_Mesh/main.cpp)
 target_link_libraries(Sample04_Mesh PRIVATE KekApplication)
+
+add_executable(Sample05_MeshDisplay 05_MeshDisplay/main.cpp)
+target_link_libraries(Sample05_MeshDisplay PRIVATE KekApplication)
