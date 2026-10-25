@@ -39,4 +39,8 @@ add_executable(Sample11_Cube 11_Cube/main.cpp)
 target_link_libraries(Sample11_Cube PRIVATE KekApplication)
 
 add_executable(Sample12_Input 12_Input/main.cpp)
-target_link_libraries(Sample12_Input PRIVATE KekApplication)                    
+target_link_libraries(Sample12_Input PRIVATE KekApplication)
+
+
+add_executable(Sample13_FlyCamera 13_FlyCamera/main.cpp)
+target_link_libraries(Sample13_FlyCamera PRIVATE KekApplication)
