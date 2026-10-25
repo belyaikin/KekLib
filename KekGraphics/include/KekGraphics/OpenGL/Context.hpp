@@ -45,7 +45,8 @@ namespace Kek::Graphics::OpenGL
 
         static void SetClearColor(float r, float g, float b, float a);
 
-        /// @brief Clears the color buffer of the current framebuffer.
+        static void EnableDepthTest();
+       /// @brief Clears the color and depth buffers of the current framebuffer.
         static void Clear();
     };
 }

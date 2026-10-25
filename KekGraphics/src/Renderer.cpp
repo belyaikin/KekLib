@@ -57,6 +57,7 @@ void main()
     Renderer::Renderer() : program(CreateDefaultProgram())
     {
         Context::SetClearColor(0.10f, 0.20f, 0.40f, 1.0f);
+        Context::EnableDepthTest();
     }
 
     void Renderer::Resize(const int width, const int height)

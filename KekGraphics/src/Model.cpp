@@ -28,4 +28,28 @@ namespace Kek::Graphics
             {0, 1, 2, 2, 3, 0}
         };
     }
+
+    Model Model::Cube()
+    {
+        return Model{
+            {
+                Vertex{Vector3{-0.5f, -0.5f,  0.5f}, Vector3{1.0f, 0.0f, 0.0f}}, // 0
+                Vertex{Vector3{ 0.5f, -0.5f,  0.5f}, Vector3{0.0f, 1.0f, 0.0f}}, // 1
+                Vertex{Vector3{ 0.5f,  0.5f,  0.5f}, Vector3{0.0f, 0.0f, 1.0f}}, // 2
+                Vertex{Vector3{-0.5f,  0.5f,  0.5f}, Vector3{1.0f, 1.0f, 0.0f}}, // 3
+                Vertex{Vector3{-0.5f, -0.5f, -0.5f}, Vector3{1.0f, 0.0f, 1.0f}}, // 4
+                Vertex{Vector3{ 0.5f, -0.5f, -0.5f}, Vector3{0.0f, 1.0f, 1.0f}}, // 5
+                Vertex{Vector3{ 0.5f,  0.5f, -0.5f}, Vector3{1.0f, 1.0f, 1.0f}}, // 6
+                Vertex{Vector3{-0.5f,  0.5f, -0.5f}, Vector3{0.3f, 0.3f, 0.3f}}, // 7
+            },
+            {
+                0, 1, 2,  2, 3, 0, // front  (+Z)
+                5, 4, 7,  7, 6, 5, // back   (-Z)
+                1, 5, 6,  6, 2, 1, // right  (+X)
+                4, 0, 3,  3, 7, 4, // left   (-X)
+                3, 2, 6,  6, 7, 3, // top    (+Y)
+                4, 5, 1,  1, 0, 4, // bottom (-Y)
+            }
+        };
+    }
 }

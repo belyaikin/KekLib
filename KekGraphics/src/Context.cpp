@@ -82,8 +82,13 @@ namespace Kek::Graphics::OpenGL
         glClearColor(r, g, b, a);
     }
 
+    void Context::EnableDepthTest()
+ {
+        glEnable(GL_DEPTH_TEST);
+ }
+
     void Context::Clear()
     {
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 }

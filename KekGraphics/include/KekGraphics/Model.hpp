@@ -27,5 +27,7 @@ namespace Kek::Graphics
         [[nodiscard]] static Model Triangle();
         /// @brief A colored 1x1 quad in the XY plane, built from 4 vertices and 6 indices.
         [[nodiscard]] static Model Quad();
+        /// @brief A colored cube with side 1, centered at the origin (8 vertices, 36 indices).
+        [[nodiscard]] static Model Cube();
     };
 }

@@ -34,3 +34,6 @@ target_link_libraries(Sample09_Transform PRIVATE KekApplication)
 
 add_executable(Sample10_Camera 10_Camera/main.cpp)
 target_link_libraries(Sample10_Camera PRIVATE KekApplication)
+
+add_executable(Sample11_Cube 11_Cube/main.cpp)
+target_link_libraries(Sample11_Cube PRIVATE KekApplication)
