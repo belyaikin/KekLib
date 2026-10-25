@@ -8,4 +8,4 @@ add_library(KekApplication STATIC
 
 target_include_directories(KekApplication PUBLIC include)
 
-target_link_libraries(KekApplication PUBLIC KekPlatform KekGraphics KekWorld)
+target_link_libraries(KekApplication PUBLIC KekPlatform KekGraphics KekWorld KekInput)

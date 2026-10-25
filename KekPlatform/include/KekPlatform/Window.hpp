@@ -6,6 +6,7 @@
 
 #include <string>
 
+
 // Forward declaration: keeps <GLFW/glfw3.h> out of public headers,
 // so only KekPlatform itself needs GLFW's include directories.
 struct GLFWwindow;

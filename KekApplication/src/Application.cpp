@@ -3,10 +3,12 @@
 //
 
 #include "KekApplication/Application.hpp"
+#include "KekInput/Input.hpp"
 
 #include <chrono>
 #include <stdexcept>
 #include <thread>
+
 
 namespace Kek
 {
@@ -47,6 +49,7 @@ namespace Kek
             while (accumulator >= tickInterval)
             {
                 root->Tick();
+                Input::NewFrame(); // "pressed"/"released" flags live for exactly one tick
                 accumulator -= tickInterval;
             }
 
