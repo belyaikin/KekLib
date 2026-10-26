@@ -5,10 +5,12 @@
 #pragma once
 
 #include <vector>
-#include "Buffer.hpp"
-#include "Shader.hpp"
-#include "ShaderProgram.hpp"
-#include "VertexArray.hpp"
+#include "Objects/Buffer.hpp"
+#include "Objects/Shader.hpp"
+#include "Objects/VertexArray.hpp"
+#include "Objects/ShaderProgram.hpp"
+
+using namespace Kek::Graphics::OpenGL::Objects;
 
 namespace Kek::Graphics::OpenGL
 {

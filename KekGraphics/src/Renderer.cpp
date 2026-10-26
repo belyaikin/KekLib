@@ -5,7 +5,7 @@
 #include "KekGraphics/Renderer.hpp"
 
 #include "KekGraphics/Components/MeshDisplay.hpp"
-#include "KekGraphics/Mesh.hpp"
+#include "KekGraphics/GpuMesh.hpp"
 #include "KekGraphics/OpenGL/Context.hpp"
 #include "KekGraphics/OpenGL/ObjectFactory.hpp"
 
@@ -13,11 +13,12 @@ namespace Kek::Graphics
 {
     using OpenGL::Context;
     using OpenGL::ObjectFactory;
-    using OpenGL::Shader;
+    using OpenGL::Objects::Shader;
 
 
     namespace
     {
+        /// TODO: Create KekFiles and provide the source of the shaders from files.
         constexpr const char* VertexSource = R"(#version 330 core
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aColor;
@@ -45,7 +46,7 @@ void main()
 }
 )";
 
-        OpenGL::ShaderProgram CreateDefaultProgram()
+        ShaderProgram CreateDefaultProgram()
         {
             const Shader vertex = ObjectFactory::CreateShader(Shader::Type::Vertex, VertexSource);
             const Shader fragment = ObjectFactory::CreateShader(Shader::Type::Fragment, FragmentSource);
@@ -114,7 +115,7 @@ void main()
 
         if (const auto* display = node.GetComponent<Components::MeshDisplay>())
         {
-            if (const Mesh* mesh = display->GetMesh())
+            if (const GpuMesh* mesh = display->GetMesh())
             {
                 program.SetMatrix4("uModel", world);
                 mesh->Draw();

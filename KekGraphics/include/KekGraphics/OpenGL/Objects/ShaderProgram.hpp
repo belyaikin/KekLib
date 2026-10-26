@@ -4,10 +4,10 @@
 
 #pragma once
 #include <string>
-#include "Object.hpp"
+#include "../Object.hpp"
 #include "KekMath/Matrix4.hpp"
 
-namespace Kek::Graphics::OpenGL
+namespace Kek::Graphics::OpenGL::Objects
 {
     class ShaderProgram final : public Object
     {

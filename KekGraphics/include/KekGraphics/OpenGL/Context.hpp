@@ -6,9 +6,11 @@
 
 #include <cstddef>
 
-#include "Buffer.hpp"
-#include "ShaderProgram.hpp"
-#include "VertexArray.hpp"
+#include "Objects/Buffer.hpp"
+#include "Objects/ShaderProgram.hpp"
+#include "Objects/VertexArray.hpp"
+
+using namespace Kek::Graphics::OpenGL::Objects;
 
 namespace Kek::Graphics::OpenGL
 {

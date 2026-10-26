@@ -8,6 +8,6 @@ namespace Kek::Graphics::Components
 {
     void MeshDisplay::Start()
     {
-        mesh = std::make_unique<Mesh>(model);
+        mesh = std::make_unique<GpuMesh>(model);
     }
 }

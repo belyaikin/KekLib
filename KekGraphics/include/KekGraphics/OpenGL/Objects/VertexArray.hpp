@@ -3,9 +3,9 @@
 //
 
 #pragma once
-#include "Object.hpp"
+#include "../Object.hpp"
 
-namespace Kek::Graphics::OpenGL
+namespace Kek::Graphics::OpenGL::Objects
 {
     class VertexArray final : public Object
     {

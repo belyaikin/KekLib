@@ -3,20 +3,20 @@ project(KekGraphics)
 
 add_library(KekGraphics STATIC
         include/KekGraphics/IRenderTarget.hpp
-        include/KekGraphics/OpenGL/Buffer.hpp
-        include/KekGraphics/OpenGL/VertexArray.hpp
+        include/KekGraphics/OpenGL/Objects/Buffer.hpp
+        include/KekGraphics/OpenGL/Objects/VertexArray.hpp
         include/KekGraphics/OpenGL/Object.hpp
         include/KekGraphics/OpenGL/Context.hpp
         src/Context.cpp
         include/KekGraphics/Model.hpp
         include/KekGraphics/Vertex.hpp
-        include/KekGraphics/OpenGL/Shader.hpp
-        include/KekGraphics/OpenGL/ShaderProgram.hpp
+        include/KekGraphics/OpenGL/Objects/Shader.hpp
+        include/KekGraphics/OpenGL/Objects/ShaderProgram.hpp
         include/KekGraphics/OpenGL/ObjectFactory.hpp
         src/ObjectFactory.cpp
         src/ShaderProgram.cpp
-        include/KekGraphics/Mesh.hpp
-        src/Mesh.cpp
+        include/KekGraphics/GpuMesh.hpp
+        src/GpuMesh.cpp
         src/Model.cpp
         src/MeshDisplay.cpp
         include/KekGraphics/Components/Camera.hpp

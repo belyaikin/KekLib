@@ -7,7 +7,7 @@
 #include <memory>
 #include <utility>
 
-#include "KekGraphics/Mesh.hpp"
+#include "KekGraphics/GpuMesh.hpp"
 #include "KekGraphics/Model.hpp"
 #include "KekWorld/Component.hpp"
 
@@ -17,7 +17,7 @@ namespace Kek::Graphics::Components
     class MeshDisplay final : public World::Component
     {
         Model model;
-        std::unique_ptr<Mesh> mesh;
+        std::unique_ptr<GpuMesh> mesh;
 
     public:
         explicit MeshDisplay(Model model) : model(std::move(model)) {}
@@ -26,6 +26,6 @@ namespace Kek::Graphics::Components
         void Start() override;
 
         /// @brief The GPU mesh, or nullptr before Start().
-        [[nodiscard]] const Mesh* GetMesh() const { return mesh.get(); }
+        [[nodiscard]] const GpuMesh* GetMesh() const { return mesh.get(); }
     };
 }

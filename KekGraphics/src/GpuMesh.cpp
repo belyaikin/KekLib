@@ -1,7 +1,7 @@
 //
 // Created by readmao on 24.10.2026.
 //
-#include "KekGraphics/Mesh.hpp"
+#include "KekGraphics/GpuMesh.hpp"
 
 #include <cstddef>
 
@@ -10,11 +10,11 @@
 
 namespace Kek::Graphics
 {
-    using OpenGL::Buffer;
+    using OpenGL::Objects::Buffer;
     using OpenGL::Context;
     using OpenGL::ObjectFactory;
 
-    Mesh::Mesh(const Model& model) :
+    GpuMesh::GpuMesh(const Model& model) :
         vertexArray(ObjectFactory::CreateVertexArray()),
         vertexBuffer(ObjectFactory::CreateBuffer()),
         indexBuffer(ObjectFactory::CreateBuffer())
@@ -47,7 +47,7 @@ namespace Kek::Graphics
         Context::UnbindVertexArray();
     }
 
-    void Mesh::Draw() const
+    void GpuMesh::Draw() const
     {
         Context::BindVertexArray(vertexArray);
 

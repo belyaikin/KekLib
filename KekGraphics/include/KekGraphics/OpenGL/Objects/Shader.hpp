@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "Object.hpp"
+#include "../Object.hpp"
 
-namespace Kek::Graphics::OpenGL
+namespace Kek::Graphics::OpenGL::Objects
 {
     class Shader final : public Object
     {

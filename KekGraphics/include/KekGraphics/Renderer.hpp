@@ -2,7 +2,7 @@
 #pragma once
 
 #include "KekWorld/Node.hpp"
-#include "OpenGL/ShaderProgram.hpp"
+#include "OpenGL/Objects/ShaderProgram.hpp"
 #include "KekMath/Matrix4.hpp"
 #include "Components/Camera.hpp"
 
@@ -11,7 +11,7 @@ namespace Kek::Graphics
     /// @brief Draws a node tree. Must be created while the OpenGL context is current.
     class Renderer final
     {
-        OpenGL::ShaderProgram program;
+        OpenGL::Objects::ShaderProgram program;
 
         int viewportWidth = 1;
         int viewportHeight = 1;

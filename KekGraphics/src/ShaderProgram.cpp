@@ -2,9 +2,9 @@
 // Created by Dmitriy on 01.10.2026.
 //
 
-#include "KekGraphics/OpenGL/ShaderProgram.hpp"
+#include "../include/KekGraphics/OpenGL/Objects/ShaderProgram.hpp"
 
-namespace Kek::Graphics::OpenGL
+namespace Kek::Graphics::OpenGL::Objects
 {
     GLint ShaderProgram::GetUniformLocation(const std::string& name) const
     {
