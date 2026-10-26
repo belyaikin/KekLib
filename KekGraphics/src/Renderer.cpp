@@ -4,10 +4,10 @@
 
 #include "KekGraphics/Renderer.hpp"
 
-#include "KekGraphics/Components/MeshDisplay.hpp"
-#include "KekGraphics/GpuMesh.hpp"
+#include "KekGraphics/RenderRegistry.hpp"
 #include "KekGraphics/OpenGL/Context.hpp"
 #include "KekGraphics/OpenGL/ObjectFactory.hpp"
+#include "KekWorld/Transform.hpp"
 
 namespace Kek::Graphics
 {
@@ -71,7 +71,7 @@ void main()
         Context::SetViewport(0, 0, width, height);
     }
 
-    void Renderer::Render(const World::Node& root)
+    void Renderer::Render()
     {
         Context::Clear();
         Context::UseProgram(program);
@@ -81,7 +81,7 @@ void main()
         Math::Matrix4 view = Math::Matrix4::Identity();
         Math::Matrix4 projection = Math::Matrix4::Identity();
 
-        if (const Components::Camera* camera = FindCamera(root))
+        if (const Components::Camera* camera = RenderRegistry::GetCamera())
         {
             const float aspectRatio = static_cast<float>(viewportWidth) / static_cast<float>(viewportHeight > 0 ? viewportHeight : 1);
 
@@ -92,37 +92,24 @@ void main()
         program.SetMatrix4("uView", view);
         program.SetMatrix4("uProjection", projection);
 
-        DrawNode(root, Math::Matrix4::Identity());
-    }
-    const Components::Camera* Renderer::FindCamera(const World::Node& node)
-    {
-        if (const auto* camera = node.GetComponent<Components::Camera>())
-            return camera;
-
-        for (const auto& child : node.GetChildren())
+        for (const RenderRegistry::Entry& entry : RenderRegistry::GetItems())
         {
-            if (const auto* camera = FindCamera(*child))
-                return camera;
+            const RenderItem& item = entry.item;
+            const auto& [mesh, transform] = item;
+
+            if (!mesh)
+                continue;
+
+            const Math::Matrix4 world = transform ? transform->GetWorldMatrix() : Math::Matrix4::Identity();
+            program.SetMatrix4("uModel", world);
+            Context::BindVertexArray(mesh->GetVertexArray());
+
+            if (mesh->IsIndexed())
+                Context::DrawElements(mesh->GetCount());
+            else
+                Context::DrawArrays(mesh->GetCount());
+
+            Context::UnbindVertexArray();
         }
-
-        return nullptr;
-    }
-
-    void Renderer::DrawNode(const World::Node& node, const Math::Matrix4& parentWorld)
-    {
-        // A node is positioned relative to its parent, so world = parentWorld * local.
-        const Math::Matrix4 world = parentWorld * node.GetTransform()->GetLocalMatrix();
-
-        if (const auto* display = node.GetComponent<Components::MeshDisplay>())
-        {
-            if (const GpuMesh* mesh = display->GetMesh())
-            {
-                program.SetMatrix4("uModel", world);
-                mesh->Draw();
-            }
-        }
-
-        for (const auto& child : node.GetChildren())
-            DrawNode(*child, world);
     }
 }

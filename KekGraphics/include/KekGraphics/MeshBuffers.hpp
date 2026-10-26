@@ -1,13 +1,13 @@
 #pragma once
 
-#include "Model.hpp"
+#include "Mesh.hpp"
 #include "OpenGL/Objects/Buffer.hpp"
 #include "OpenGL/Objects/VertexArray.hpp"
 
 namespace Kek::Graphics
 {
     /// @brief Geometry uploaded to the GPU. Must be created while the OpenGL context is current.
-    class GpuMesh final
+    class MeshBuffers final
     {
         OpenGL::Objects::VertexArray vertexArray;
         OpenGL::Objects::Buffer vertexBuffer;
@@ -17,10 +17,10 @@ namespace Kek::Graphics
         bool indexed = false;
 
     public:
-        explicit GpuMesh(const Model& model);
+        explicit MeshBuffers(const Mesh& model);
 
+        [[nodiscard]] const OpenGL::Objects::VertexArray& GetVertexArray() const { return vertexArray; }
         [[nodiscard]] GLsizei GetCount() const { return count; }
-
-        void Draw() const;
+        [[nodiscard]] bool IsIndexed() const { return indexed; }
     };
 }

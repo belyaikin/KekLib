@@ -10,7 +10,7 @@
 namespace Kek::Graphics::Components
 {
     /// @brief A perspective camera. It looks along the -Z axis of its node's Transform
-    /// (so with zero rotation it looks "into" the screen). The Renderer uses the first camera it finds.
+    /// (so with zero rotation it looks "into" the screen). The first started camera is active.
     class Camera final : public World::Component
     {
         float verticalFov;
@@ -23,6 +23,9 @@ namespace Kek::Graphics::Components
                         const float nearPlane = 0.1f,
                         const float farPlane = 100.0f)
             : verticalFov(verticalFov), nearPlane(nearPlane), farPlane(farPlane) {}
+
+        void Start() override;
+        void Destroy() override;
 
         [[nodiscard]] float GetVerticalFov() const { return verticalFov; }
         void SetVerticalFov(const float radians) { verticalFov = radians; }

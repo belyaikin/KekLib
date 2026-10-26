@@ -12,7 +12,7 @@ using namespace Kek::Graphics;
 int main()
 {
     auto root = std::make_unique<Kek::World::Node>();
-    root->AttachComponent<Components::MeshDisplay>(Model::Triangle());
+    root->AttachComponent<Components::MeshDisplay>(Mesh::Triangle());
 
     Kek::Application app(Kek::Platform::WindowSettings{800, 600, "KekLib - 06 Triangle"}, std::move(root));
     app.Run();

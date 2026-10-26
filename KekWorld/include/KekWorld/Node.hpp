@@ -5,10 +5,11 @@
 #pragma once
 
 #include <memory>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "Component.hpp"
-#include "Transform.hpp"
 
 namespace Kek::World
 {
@@ -19,18 +20,14 @@ namespace Kek::World
         std::vector<std::unique_ptr<Node>> children;
 
         bool markedForRemoval = false;
+        bool destroyed = false;
         std::vector<std::unique_ptr<Node>> pendingChildren;
 
         std::vector<std::unique_ptr<Component>> components;
 
-        Transform* transform;
     public:
-        Node()
-        {
-            this->transform = AttachComponent<Transform>(Math::Vector3{0, 0, 0});
-        }
-
-        ~Node() = default;
+        Node() = default;
+        ~Node();
 
         [[nodiscard]]
         Node *GetParentNode() const
@@ -107,10 +104,9 @@ namespace Kek::World
 
             return nullptr;
         }
-        [[nodiscard]] Transform* GetTransform() const { return transform; }
-
         void Start();
         void Tick();
+        void Destroy();
 
         /// @brief Recursively clears the queues.
         void Flush();

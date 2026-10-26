@@ -1,24 +1,24 @@
 //
 // Created by readmao on 24.10.2026.
 //
-#include "KekGraphics/Model.hpp"
+#include "KekGraphics/Mesh.hpp"
 
 namespace Kek::Graphics
 {
     using Math::Vector3;
 
-    Model Model::Triangle()
+    Mesh Mesh::Triangle()
     {
-        return Model{{
+        return Mesh{{
             Vertex{Vector3{-0.5f, -0.5f, 0.0f}, Vector3{1, 0, 0}},
             Vertex{Vector3{ 0.5f, -0.5f, 0.0f}, Vector3{0, 1, 0}},
             Vertex{Vector3{ 0.0f,  0.5f, 0.0f}, Vector3{0, 0, 1}},
         }};
     }
 
-    Model Model::Quad()
+    Mesh Mesh::Quad()
     {
-        return Model{
+        return Mesh{
             {
                 Vertex{Vector3{-0.5f, -0.5f, 0.0f}, Vector3{1, 0, 0}},
                 Vertex{Vector3{ 0.5f, -0.5f, 0.0f}, Vector3{0, 1, 0}},
@@ -29,9 +29,9 @@ namespace Kek::Graphics
         };
     }
 
-    Model Model::Cube()
+    Mesh Mesh::Cube()
     {
-        return Model{
+        return Mesh{
             {
                 Vertex{Vector3{-0.5f, -0.5f,  0.5f}, Vector3{1.0f, 0.0f, 0.0f}}, // 0
                 Vertex{Vector3{ 0.5f, -0.5f,  0.5f}, Vector3{0.0f, 1.0f, 0.0f}}, // 1

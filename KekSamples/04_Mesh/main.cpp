@@ -6,8 +6,8 @@
 #include <utility>
 
 #include "KekApplication/Application.hpp"
-#include "KekGraphics/GpuMesh.hpp"
-#include "KekGraphics/Model.hpp"
+#include "KekGraphics/MeshBuffers.hpp"
+#include "KekGraphics/Mesh.hpp"
 #include "KekGraphics/OpenGL/Context.hpp"
 
 using namespace Kek::Graphics;
@@ -16,7 +16,7 @@ struct MeshCheck final : Kek::World::Component
 {
     void Start() override
     {
-        const GpuMesh mesh{Model::Triangle()};
+        const MeshBuffers mesh{Mesh::Triangle()};
 
         std::cout << "mesh uploaded, element count = " << mesh.GetCount() << " (expected 3)\n";
         std::cout << "glGetError: " << OpenGL::Context::GetError() << " (expected 0)\n";

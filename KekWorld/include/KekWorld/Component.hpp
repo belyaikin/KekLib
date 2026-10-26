@@ -24,5 +24,6 @@ namespace Kek::World
 
         virtual void Start() {}
         virtual void Tick() {}
+        virtual void Destroy() {}
     };
 }

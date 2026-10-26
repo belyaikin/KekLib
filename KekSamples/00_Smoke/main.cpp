@@ -2,6 +2,7 @@
 #include <memory>
 
 #include "KekWorld/Node.hpp"
+#include "KekWorld/Transform.hpp"
 
 struct Marker final : Kek::World::Component {};
 struct NotAttached final : Kek::World::Component {};
@@ -9,6 +10,7 @@ struct NotAttached final : Kek::World::Component {};
 int main()
 {
     Kek::World::Node root;
+    auto* transform = root.AttachComponent<Kek::World::Transform>(Kek::Math::Vector3{0, 0, 0});
     root.AddChild(std::make_unique<Kek::World::Node>());
 
     root.Start();
@@ -21,7 +23,7 @@ int main()
     std::cout << "GetComponent<Marker> finds it:      " << (root.GetComponent<Marker>() == marker ? "yes" : "NO") << '\n';
     std::cout << "GetComponent<NotAttached> is null:  " << (root.GetComponent<NotAttached>() == nullptr ? "yes" : "NO") << '\n';
     std::cout << "GetNode() returns the owner:        " << (marker->GetNode() == &root ? "yes" : "NO") << '\n';
-    std::cout << "GetComponent<Transform> works:      " << (root.GetComponent<Kek::World::Transform>() == root.GetTransform() ? "yes" : "NO") << '\n';
+    std::cout << "GetComponent<Transform> works:      " << (root.GetComponent<Kek::World::Transform>() == transform ? "yes" : "NO") << '\n';
 
     std::cout << "OK\n";
     return 0;

@@ -10,6 +10,7 @@
 #include "KekGraphics/Components/MeshDisplay.hpp"
 #include "KekInput/Input.hpp"
 #include "KekMath/Matrix4.hpp"
+#include "KekWorld/Transform.hpp"
 
 using namespace Kek::Graphics;
 using Kek::Input::Key;
@@ -24,7 +25,7 @@ struct FlyCamera final : Kek::World::Component
 
     void Tick() override
     {
-        auto* transform = GetNode()->GetTransform();
+        auto* transform = GetNode()->GetComponent<Kek::World::Transform>();
 
         Vector3 rotation = transform->GetRotation();
         if (Kek::Input::GetKey(Key::Left)) rotation += Vector3{0, TurnSpeed, 0};
@@ -57,7 +58,7 @@ int main()
     auto root = std::make_unique<Kek::World::Node>();
 
     auto camera = std::make_unique<Kek::World::Node>();
-    camera->GetTransform()->SetPosition(Vector3{0, 1.5f, 6});
+    camera->AttachComponent<Kek::World::Transform>(Vector3{0, 1.5f, 6});
     camera->AttachComponent<Components::Camera>();
     camera->AttachComponent<FlyCamera>();
     root->AddChild(std::move(camera));
@@ -70,9 +71,9 @@ int main()
             auto cube = std::make_unique<Kek::World::Node>();
             const float height = 0.5f + static_cast<float>((x * 3 + z * 5 + 20) % 4) * 0.5f;
 
-            cube->GetTransform()->SetPosition(Vector3{x * 2.0f, height * 0.5f - 0.5f, z * 2.0f - 6.0f});
-            cube->GetTransform()->SetScale(Vector3{1.0f, height, 1.0f});
-            cube->AttachComponent<Components::MeshDisplay>(Model::Cube());
+            auto* transform = cube->AttachComponent<Kek::World::Transform>(Vector3{x * 2.0f, height * 0.5f - 0.5f, z * 2.0f - 6.0f});
+            transform->SetScale(Vector3{1.0f, height, 1.0f});
+            cube->AttachComponent<Components::MeshDisplay>(Mesh::Cube());
 
             root->AddChild(std::move(cube));
         }

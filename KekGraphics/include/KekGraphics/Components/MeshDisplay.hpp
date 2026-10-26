@@ -7,25 +7,26 @@
 #include <memory>
 #include <utility>
 
-#include "KekGraphics/GpuMesh.hpp"
-#include "KekGraphics/Model.hpp"
+#include "KekGraphics/MeshBuffers.hpp"
+#include "KekGraphics/Mesh.hpp"
 #include "KekWorld/Component.hpp"
 
 namespace Kek::Graphics::Components
 {
-    /// @brief Makes a node visible: the Renderer draws the mesh of every MeshDisplay in the tree.
+    /// @brief Registers this node's mesh and world transform with the render registry.
     class MeshDisplay final : public World::Component
     {
-        Model model;
-        std::unique_ptr<GpuMesh> mesh;
+        Mesh model;
+        std::unique_ptr<MeshBuffers> buffers;
 
     public:
-        explicit MeshDisplay(Model model) : model(std::move(model)) {}
+        explicit MeshDisplay(Mesh model) : model(std::move(model)) {}
 
-        /// @brief Uploads the model to the GPU (the OpenGL context is ready when Start() is called).
+        /// @brief Uploads the mesh to GPU buffers and registers it for rendering.
         void Start() override;
+        void Destroy() override;
 
-        /// @brief The GPU mesh, or nullptr before Start().
-        [[nodiscard]] const GpuMesh* GetMesh() const { return mesh.get(); }
+        /// @brief The GPU buffers, or nullptr before Start().
+        [[nodiscard]] const MeshBuffers* GetBuffers() const { return buffers.get(); }
     };
 }

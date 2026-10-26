@@ -3,11 +3,21 @@
 //
 
 #include "KekGraphics/Components/MeshDisplay.hpp"
+#include "KekGraphics/RenderRegistry.hpp"
+#include "KekWorld/Node.hpp"
+#include "KekWorld/Transform.hpp"
 
 namespace Kek::Graphics::Components
 {
     void MeshDisplay::Start()
     {
-        mesh = std::make_unique<GpuMesh>(model);
+        buffers = std::make_unique<MeshBuffers>(model);
+        RenderRegistry::Register(this, RenderItem{buffers.get(), GetNode()->GetComponent<World::Transform>()});
+    }
+
+    void MeshDisplay::Destroy()
+    {
+        RenderRegistry::Unregister(this);
+        buffers.reset();
     }
 }

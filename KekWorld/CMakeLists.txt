@@ -5,6 +5,7 @@ add_library(KekWorld STATIC
         include/KekWorld/Node.hpp
         include/KekWorld/Component.hpp
         src/Node.cpp
+        src/Transform.cpp
         include/KekWorld/Transform.hpp
 )
 
