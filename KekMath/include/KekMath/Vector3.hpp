@@ -3,7 +3,7 @@
 //
 
 #pragma once
-
+#include <cmath>
 namespace Kek::Math
 {
     class Vector3
@@ -37,6 +37,24 @@ namespace Kek::Math
             return *this;
         }
 
+        constexpr Vector3 operator-(const Vector3& other) const
+        {
+            return Vector3{ x - other.x, y - other.y, z - other.z };
+        }
+
+        constexpr Vector3 operator-() const
+        {
+            return Vector3{ -x, -y, -z };
+        }
+
+        constexpr Vector3& operator-=(const Vector3& other)
+        {
+            x -= other.x;
+            y -= other.y;
+            z -= other.z;
+            return *this;
+        }
+
         constexpr Vector3 operator*(const float by) const
         {
             return Vector3{ x * by, y * by, z * by };
@@ -66,6 +84,32 @@ namespace Kek::Math
             y *= by.y;
             z *= by.z;
             return *this;
+        }
+
+        [[nodiscard]] constexpr float Dot(const Vector3& other) const
+        {
+            return x * other.x + y * other.y + z * other.z;
+        }
+
+        [[nodiscard]] constexpr Vector3 Cross(const Vector3& other) const
+        {
+            return Vector3{
+                y * other.z - z * other.y,
+                z * other.x - x * other.z,
+                x * other.y - y * other.x
+            };
+        }
+
+        [[nodiscard]] float Length() const
+        {
+            return std::sqrt(Dot(*this));
+        }
+
+        /// @brief Unit-length copy of this vector (the zero vector stays zero).
+        [[nodiscard]] Vector3 Normalized() const
+        {
+            const float length = Length();
+            return length > 0.0f ? *this * (1.0f / length) : Vector3{ 0, 0, 0 };
         }
     };
 

@@ -5,9 +5,10 @@ add_library(KekWorld STATIC
         include/KekWorld/Node.hpp
         include/KekWorld/Component.hpp
         src/Node.cpp
+        src/Transform.cpp
         include/KekWorld/Transform.hpp
 )
 
 target_include_directories(KekWorld PUBLIC include)
 
-target_link_libraries(KekWorld PUBLIC KekMath KekRenderer)
+target_link_libraries(KekWorld PUBLIC KekMath)

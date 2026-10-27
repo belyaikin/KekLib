@@ -2,23 +2,34 @@ cmake_minimum_required(VERSION 3.10)
 project(KekGraphics)
 
 add_library(KekGraphics STATIC
-        include/KekGraphics/IRenderTarget.hpp
-        include/KekGraphics/OpenGL/Buffer.hpp
-        include/KekGraphics/OpenGL/VertexArray.hpp
+        include/KekGraphics/RenderRegistry.hpp
+        include/KekGraphics/OpenGL/Objects/Buffer.hpp
+        include/KekGraphics/OpenGL/Objects/VertexArray.hpp
         include/KekGraphics/OpenGL/Object.hpp
         include/KekGraphics/OpenGL/Context.hpp
         src/Context.cpp
-        include/KekGraphics/Model.hpp
+        include/KekGraphics/Mesh.hpp
         include/KekGraphics/Vertex.hpp
-        include/KekGraphics/OpenGL/Shader.hpp
-        include/KekGraphics/OpenGL/ShaderProgram.hpp
+        include/KekGraphics/OpenGL/Objects/Shader.hpp
+        include/KekGraphics/OpenGL/Objects/ShaderProgram.hpp
         include/KekGraphics/OpenGL/ObjectFactory.hpp
         src/ObjectFactory.cpp
-        include/KekGraphics/Components/MeshDisplay.hpp)
+        src/ShaderProgram.cpp
+        include/KekGraphics/MeshBuffers.hpp
+        src/MeshBuffers.cpp
+        src/Mesh.cpp
+        src/MeshDisplay.cpp
+        include/KekGraphics/Components/Camera.hpp
+        src/Camera.cpp
+        include/KekGraphics/Renderer.hpp
+        src/Renderer.cpp
+        include/KekGraphics/Components/MeshDisplay.hpp
+        deps/glad/src/gl.c
+        include/KekGraphics/RenderItem.hpp
+)
 
-target_include_directories(KekGraphics PUBLIC include)
-
-target_include_directories(KekGraphics PRIVATE
+target_include_directories(KekGraphics PUBLIC
+        include
         deps/glad/include
 )
 

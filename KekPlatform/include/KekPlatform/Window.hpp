@@ -5,7 +5,11 @@
 #pragma once
 
 #include <string>
-#include <GLFW/glfw3.h>
+
+
+// Forward declaration: keeps <GLFW/glfw3.h> out of public headers,
+// so only KekPlatform itself needs GLFW's include directories.
+struct GLFWwindow;
 
 namespace Kek::Platform
 {
@@ -17,33 +21,40 @@ namespace Kek::Platform
         std::string title;
     };
 
+    struct FramebufferSize final
+    {
+        int width;
+        int height;
+    };
+
     class Window final
     {
-        using GLProcLoader = GLFWglproc (*)(const char*);
-        [[nodiscard]] GLProcLoader GetProcLoader() const;
-
         WindowSettings settings;
 
-        GLFWwindow *glfwWindow;
+        GLFWwindow *glfwWindow = nullptr;
 
     public:
-        explicit Window(const WindowSettings& settings) :
-            settings(settings),
-            glfwWindow(
-                glfwCreateWindow(
-                    settings.width,
-                    settings.height,
-                    settings.title.c_str(),
-                    nullptr,
-                    nullptr
-                )
-            )
-        {}
+        using GLProcLoader = void* (*)(const char*);
+
+        /// @brief Initializes GLFW (if needed) and creates a window with an OpenGL 3.3 core context.
+        /// @throws std::runtime_error if GLFW or the window cannot be created.
+        explicit Window(const WindowSettings& settings);
+        ~Window();
+
+        Window(const Window&) = delete;
+        Window& operator=(const Window&) = delete;
 
         void MakeContextCurrent() const;
+
+        /// @brief Function that resolves OpenGL entry points (pass it to the GL loader).
+        [[nodiscard]] GLProcLoader GetProcLoader() const;
 
         [[nodiscard]] bool ShouldClose() const;
 
         void PollEvents() const;
+
+        void SwapBuffers() const;
+
+        [[nodiscard]] FramebufferSize GetFramebufferSize() const;
     };
 }

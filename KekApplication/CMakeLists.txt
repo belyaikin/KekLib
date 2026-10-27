@@ -3,8 +3,9 @@ project(KekApplication)
 
 add_library(KekApplication STATIC
         include/KekApplication/Application.hpp
-        src/Application.cpp)
+        src/Application.cpp
+        ../KekSamples/00_Smoke/main.cpp)
 
 target_include_directories(KekApplication PUBLIC include)
 
-target_link_libraries(KekApplication PUBLIC KekPlatform KekGraphics KekWorld)
+target_link_libraries(KekApplication PUBLIC KekPlatform KekGraphics KekWorld KekInput)

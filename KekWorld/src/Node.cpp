@@ -8,6 +8,11 @@
 
 namespace Kek::World
 {
+    Node::~Node()
+    {
+        Destroy();
+    }
+
     void Node::AddChild(std::unique_ptr<Node> node)
     {
         node->parentNode = this;
@@ -37,9 +42,26 @@ namespace Kek::World
         for (const auto& child : children) child->Tick();
     }
 
+    void Node::Destroy()
+    {
+        if (destroyed) return;
+        destroyed = true;
+
+        for (const auto& component : components)
+            component->Destroy();
+
+        for (const auto& child : children)
+            child->Destroy();
+
+        for (const auto& child : pendingChildren)
+            child->Destroy();
+    }
+
     void Node::Flush()
     {
         std::erase_if(children, [](const std::unique_ptr<Node>& childNode) {
+            if (childNode->markedForRemoval)
+                childNode->Destroy();
             return childNode->markedForRemoval;
         });
 

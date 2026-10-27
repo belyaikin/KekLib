@@ -8,6 +8,7 @@ src/Window.cpp)
 
 target_include_directories(KekPlatform PUBLIC include)
 
-target_link_libraries(KekPlatform PRIVATE glfw)
+target_link_libraries(KekPlatform PRIVATE glfw KekInput)
 
 target_compile_definitions(KekPlatform PUBLIC GLFW_INCLUDE_NONE)
+

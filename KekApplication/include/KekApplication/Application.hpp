@@ -3,11 +3,14 @@
 //
 
 #pragma once
-
+#include "KekGraphics/OpenGL/Context.hpp"
 #include "KekPlatform/Window.hpp"
 #include "KekWorld/Node.hpp"
 
+#include "KekGraphics/Renderer.hpp"
+
 #include <memory>
+#include <utility>
 
 namespace Kek
 {
@@ -17,6 +20,11 @@ namespace Kek
         unsigned int tickRate = 20;
 
         Platform::Window window;
+        Graphics::OpenGL::Context glContext;
+
+        // Created in Run(), once OpenGL is loaded. Declared before `root`, so it is destroyed after the scene
+        // and before the window.
+        std::unique_ptr<Graphics::Renderer> renderer;
         std::unique_ptr<World::Node> root;
 
     public:
@@ -33,6 +41,6 @@ namespace Kek
         std::unique_ptr<World::Node>& GetRootNode() { return root; }
         void SetRootNode(std::unique_ptr<World::Node> &root) { this->root = std::move(root); }
 
-        void Run() const;
+        void Run();
     };
 }

@@ -5,10 +5,12 @@
 #pragma once
 
 #include <vector>
-#include "Buffer.hpp"
-#include "Shader.hpp"
-#include "ShaderProgram.hpp"
-#include "VertexArray.hpp"
+#include "Objects/Buffer.hpp"
+#include "Objects/Shader.hpp"
+#include "Objects/VertexArray.hpp"
+#include "Objects/ShaderProgram.hpp"
+
+using namespace Kek::Graphics::OpenGL::Objects;
 
 namespace Kek::Graphics::OpenGL
 {
@@ -18,6 +20,10 @@ namespace Kek::Graphics::OpenGL
         [[nodiscard]] static std::vector<VertexArray> CreateVertexArrays(size_t n);
 
         [[nodiscard]] static std::vector<Buffer> CreateBuffers(size_t n);
+
+        [[nodiscard]] static VertexArray CreateVertexArray();
+
+        [[nodiscard]] static Buffer CreateBuffer();
 
         [[nodiscard]] static Shader CreateShader(Shader::Type type, const char *source);
 

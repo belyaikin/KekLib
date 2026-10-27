@@ -3,18 +3,28 @@
 //
 
 #include "KekApplication/Application.hpp"
+#include "KekInput/Input.hpp"
 
+#include <chrono>
+#include <stdexcept>
 #include <thread>
+
 
 namespace Kek
 {
     // TODO: Create ApplicationLoop class or something like that to not put all of this here
-    void Application::Run() const
+    void Application::Run()
     {
         using Clock = std::chrono::steady_clock;
         using Seconds = std::chrono::duration<double>;
 
         this->window.MakeContextCurrent();
+        if (!this->glContext.Initialize(this->window.GetProcLoader()))
+        throw std::runtime_error("Failed to load OpenGL functions");
+
+        this->renderer = std::make_unique<Graphics::Renderer>();
+
+
         this->root->Start();
 
         const Seconds tickInterval{1.0 / tickRate};
@@ -39,6 +49,7 @@ namespace Kek
             while (accumulator >= tickInterval)
             {
                 root->Tick();
+                Input::NewFrame(); // "pressed"/"released" flags live for exactly one tick
                 accumulator -= tickInterval;
             }
 
@@ -46,6 +57,13 @@ namespace Kek
             (void)alpha;
 
             // TODO: render here
+            
+            const auto framebufferSize = this->window.GetFramebufferSize();
+            this->renderer->Resize(framebufferSize.width, framebufferSize.height);
+
+            this->renderer->Render();
+
+            this->window.SwapBuffers();
 
             if (maximumFramesPerSecond > 0)
             {
