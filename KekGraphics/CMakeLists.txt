@@ -33,4 +33,4 @@ target_include_directories(KekGraphics PUBLIC
         deps/glad/include
 )
 
-target_link_libraries(KekGraphics PUBLIC KekMath KekWorld)
+target_link_libraries(KekGraphics PUBLIC KekMath KekWorld KekAssets)
