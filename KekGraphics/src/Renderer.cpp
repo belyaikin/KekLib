@@ -4,6 +4,9 @@
 
 #include "KekGraphics/Renderer.hpp"
 
+#include <string>
+
+#include "KekAssets/Assets.hpp"
 #include "KekGraphics/RenderRegistry.hpp"
 #include "KekGraphics/OpenGL/Context.hpp"
 #include "KekGraphics/OpenGL/ObjectFactory.hpp"
@@ -14,42 +17,17 @@ namespace Kek::Graphics
     using OpenGL::Context;
     using OpenGL::ObjectFactory;
     using OpenGL::Objects::Shader;
-
+    using OpenGL::Objects::ShaderProgram;
 
     namespace
     {
-        /// TODO: Create KekFiles and provide the source of the shaders from files.
-        constexpr const char* VertexSource = R"(#version 330 core
-layout(location = 0) in vec3 aPosition;
-layout(location = 1) in vec3 aColor;
-
-uniform mat4 uModel;
-uniform mat4 uView;
-uniform mat4 uProjection;
-
-out vec3 vColor;
-
-void main()
-{
-    vColor = aColor;
-    gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0);
-}
-)";
-
-        constexpr const char* FragmentSource = R"(#version 330 core
-in vec3 vColor;
-out vec4 FragColor;
-
-void main()
-{
-    FragColor = vec4(vColor, 1.0);
-}
-)";
-
         ShaderProgram CreateDefaultProgram()
         {
-            const Shader vertex = ObjectFactory::CreateShader(Shader::Type::Vertex, VertexSource);
-            const Shader fragment = ObjectFactory::CreateShader(Shader::Type::Fragment, FragmentSource);
+            const std::string vertexSource = Assets::ReadText("shaders/phong.vert");
+            const std::string fragmentSource = Assets::ReadText("shaders/phong.frag");
+
+            const Shader vertex = ObjectFactory::CreateShader(Shader::Type::Vertex, vertexSource.c_str());
+            const Shader fragment = ObjectFactory::CreateShader(Shader::Type::Fragment, fragmentSource.c_str());
 
             return ObjectFactory::CreateShaderProgram({&vertex, &fragment});
         }
@@ -76,10 +54,10 @@ void main()
         Context::Clear();
         Context::UseProgram(program);
 
-
         // Without a camera everything is drawn directly in clip space (identity view and projection).
         Math::Matrix4 view = Math::Matrix4::Identity();
         Math::Matrix4 projection = Math::Matrix4::Identity();
+        Math::Vector3 viewPosition{0, 0, 0};
 
         if (const Components::Camera* camera = RenderRegistry::GetCamera())
         {
@@ -87,10 +65,21 @@ void main()
 
             view = camera->GetViewMatrix();
             projection = camera->GetProjectionMatrix(aspectRatio);
+            viewPosition = camera->GetPosition();
         }
 
         program.SetMatrix4("uView", view);
         program.SetMatrix4("uProjection", projection);
+        program.SetVector3("uViewPos", viewPosition);
+
+        const Components::Light* light = RenderRegistry::GetLight();
+        program.SetBool("uLightingEnabled", light != nullptr);
+
+        if (light != nullptr)
+        {
+            program.SetVector3("uLightPos", light->GetPosition());
+            program.SetVector3("uLightColor", light->GetColor() * light->GetIntensity());
+        }
 
         for (const RenderRegistry::Entry& entry : RenderRegistry::GetItems())
         {
