@@ -32,6 +32,8 @@ namespace Kek::Graphics::OpenGL::Objects
         void SetInt(const std::string& name, int value) const;
         void SetFloat(const std::string& name, float value) const;
         void SetMatrix4(const std::string& name, const Math::Matrix4& value) const;
+        void SetVector3(const std::string& name, const Math::Vector3& value) const;
+
 
     private:
         [[nodiscard]] GLint GetUniformLocation(const std::string& name) const;

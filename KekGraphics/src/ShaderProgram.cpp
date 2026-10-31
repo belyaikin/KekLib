@@ -31,4 +31,11 @@ namespace Kek::Graphics::OpenGL::Objects
         // Matrix4 is column-major already, so no transpose is needed.
         glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, value.Data());
     }
+
+    void ShaderProgram::SetVector3(const std::string& name, const Math::Vector3& value) const
+    {
+        glUniform3f(GetUniformLocation(name), value.X(), value.Y(),
+        value.Z());
+    }
+
 }
