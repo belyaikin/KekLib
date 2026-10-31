@@ -26,6 +26,8 @@ add_library(KekGraphics STATIC
         include/KekGraphics/Components/MeshDisplay.hpp
         deps/glad/src/gl.c
         include/KekGraphics/RenderItem.hpp
+        include/KekGraphics/Components/Light.hpp
+        src/Light.cpp
 )
 
 target_include_directories(KekGraphics PUBLIC

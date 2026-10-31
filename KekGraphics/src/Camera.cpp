@@ -35,6 +35,18 @@ namespace Kek::Graphics::Components
         return rotation.Transposed() * Math::Matrix4::Translation(-transform->GetPosition());
     }
 
+    Math::Vector3 Camera::GetPosition() const
+    {
+        const World::Node* node = GetNode();
+
+        if (node == nullptr) return Math::Vector3{0, 0, 0};
+
+        const World::Transform* transform = node->GetComponent<World::Transform>();
+
+        return transform != nullptr ? transform->GetPosition() : Math::Vector3{0, 0, 0};
+    }
+
+
     Math::Matrix4 Camera::GetProjectionMatrix(const float aspectRatio) const
     {
         return Math::Matrix4::Perspective(verticalFov, aspectRatio, nearPlane, farPlane);
