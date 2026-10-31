@@ -29,6 +29,9 @@ namespace Kek::Graphics
 
         Context::EnableVertexAttribute(0, 3, sizeof(Vertex), offsetof(Vertex, position));
         Context::EnableVertexAttribute(1, 3, sizeof(Vertex), offsetof(Vertex, color));
+        Context::EnableVertexAttribute(2, 3, sizeof(Vertex), offsetof(Vertex, normal));
+        Context::EnableVertexAttribute(3, 2, sizeof(Vertex), offsetof(Vertex, uv));
+
 
         if (!indices.empty())
         {
