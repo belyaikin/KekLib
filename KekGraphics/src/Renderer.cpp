@@ -90,6 +90,7 @@ namespace Kek::Graphics
             const Math::Matrix4 world = item.transform ? item.transform->GetWorldMatrix() : Math::Matrix4::Identity();
 
             program.SetMatrix4("uModel", world);
+            item.material->Apply();
             Context::BindVertexArray(item.mesh->GetVertexArray());
 
             if (item.mesh->IsIndexed())

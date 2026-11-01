@@ -9,6 +9,7 @@
 #include "Objects/Buffer.hpp"
 #include "Objects/ShaderProgram.hpp"
 #include "Objects/VertexArray.hpp"
+#include "Objects/Texture.hpp"
 
 using namespace Kek::Graphics::OpenGL::Objects;
 
@@ -50,5 +51,12 @@ namespace Kek::Graphics::OpenGL
         static void EnableDepthTest();
        /// @brief Clears the color and depth buffers of the current framebuffer.
         static void Clear();
+
+        /// @brief Binds the texture to a texture unit (0, 1, ...).
+        static void BindTexture(const Texture& texture, unsigned int unit);
+
+        /// @brief Uploads RGBA8 pixels into the currently bound 2D texture and builds mipmaps.
+        static void UploadTexture2D(int width, int height, const unsigned char* rgba);
+
     };
 }
