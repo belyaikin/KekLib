@@ -48,3 +48,6 @@ target_link_libraries(Sample13_FlyCamera PRIVATE KekApplication)
 
 add_executable(Sample14_Pong 14_Pong/main.cpp)
 target_link_libraries(Sample14_Pong PRIVATE KekApplication)
+
+add_executable(Sample15_Light 15_Light/main.cpp)
+target_link_libraries(Sample15_Light PRIVATE KekApplication)
