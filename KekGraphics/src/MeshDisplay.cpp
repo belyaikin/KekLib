@@ -12,12 +12,14 @@ namespace Kek::Graphics::Components
     void MeshDisplay::Start()
     {
         buffers = std::make_unique<MeshBuffers>(model);
-        RenderRegistry::Register(this, RenderItem{buffers.get(), GetNode()->GetComponent<World::Transform>()});
+        material = std::make_unique<Material>(materialSettings);
+        RenderRegistry::Register(this, RenderItem{buffers.get(), GetNode()->GetComponent<World::Transform>(), material.get()});
     }
 
     void MeshDisplay::Destroy()
     {
         RenderRegistry::Unregister(this);
         buffers.reset();
+        material.reset();
     }
 }

@@ -28,6 +28,10 @@ add_library(KekGraphics STATIC
         include/KekGraphics/RenderItem.hpp
         include/KekGraphics/Components/Light.hpp
         src/Light.cpp
+        include/KekGraphics/Material.hpp
+        include/KekGraphics/ShaderLibrary.hpp
+        src/Material.cpp
+        src/ShaderLibrary.cpp
 )
 
 target_include_directories(KekGraphics PUBLIC
