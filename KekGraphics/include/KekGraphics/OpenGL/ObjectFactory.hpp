@@ -9,6 +9,7 @@
 #include "Objects/Shader.hpp"
 #include "Objects/VertexArray.hpp"
 #include "Objects/ShaderProgram.hpp"
+#include "Objects/Texture.hpp"
 
 using namespace Kek::Graphics::OpenGL::Objects;
 
@@ -28,5 +29,8 @@ namespace Kek::Graphics::OpenGL
         [[nodiscard]] static Shader CreateShader(Shader::Type type, const char *source);
 
         [[nodiscard]] static ShaderProgram CreateShaderProgram(std::vector<const Shader *> shaders);
+
+        [[nodiscard]] static Texture CreateTexture(int width, int height, const unsigned char* rgba);
+
     };
 }

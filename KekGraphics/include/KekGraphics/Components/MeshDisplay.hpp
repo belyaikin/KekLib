@@ -7,6 +7,7 @@
 #include <memory>
 #include <utility>
 
+#include "KekGraphics/Material.hpp"
 #include "KekGraphics/MeshBuffers.hpp"
 #include "KekGraphics/Mesh.hpp"
 #include "KekWorld/Component.hpp"
@@ -17,10 +18,14 @@ namespace Kek::Graphics::Components
     class MeshDisplay final : public World::Component
     {
         Mesh model;
+        MaterialSettings materialSettings;
         std::unique_ptr<MeshBuffers> buffers;
+        std::unique_ptr<Material> material;
+
 
     public:
-        explicit MeshDisplay(Mesh model) : model(std::move(model)) {}
+        explicit MeshDisplay(Mesh model, MaterialSettings settings = {})
+            : model(std::move(model)), materialSettings(std::move(settings)) {}
 
         /// @brief Uploads the mesh to GPU buffers and registers it for rendering.
         void Start() override;

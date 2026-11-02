@@ -4,58 +4,43 @@
 
 #include "KekGraphics/Renderer.hpp"
 
+#include "KekGraphics/Material.hpp"
 #include "KekGraphics/RenderRegistry.hpp"
 #include "KekGraphics/OpenGL/Context.hpp"
-#include "KekGraphics/OpenGL/ObjectFactory.hpp"
 #include "KekWorld/Transform.hpp"
 
 namespace Kek::Graphics
 {
     using OpenGL::Context;
-    using OpenGL::ObjectFactory;
-    using OpenGL::Objects::Shader;
-
+    using OpenGL::Objects::ShaderProgram;
 
     namespace
     {
-        /// TODO: Create KekFiles and provide the source of the shaders from files.
-        constexpr const char* VertexSource = R"(#version 330 core
-layout(location = 0) in vec3 aPosition;
-layout(location = 1) in vec3 aColor;
-
-uniform mat4 uModel;
-uniform mat4 uView;
-uniform mat4 uProjection;
-
-out vec3 vColor;
-
-void main()
-{
-    vColor = aColor;
-    gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0);
-}
-)";
-
-        constexpr const char* FragmentSource = R"(#version 330 core
-in vec3 vColor;
-out vec4 FragColor;
-
-void main()
-{
-    FragColor = vec4(vColor, 1.0);
-}
-)";
-
-        ShaderProgram CreateDefaultProgram()
+        /// Everything that is the same for all objects in one frame.
+        struct FrameData
         {
-            const Shader vertex = ObjectFactory::CreateShader(Shader::Type::Vertex, VertexSource);
-            const Shader fragment = ObjectFactory::CreateShader(Shader::Type::Fragment, FragmentSource);
-
-            return ObjectFactory::CreateShaderProgram({&vertex, &fragment});
+            Math::Matrix4 view = Math::Matrix4::Identity();
+            Math::Matrix4 projection = Math::Matrix4::Identity();
+            Math::Vector3 viewPosition{0, 0, 0};
+            const Components::Light* light = nullptr;
+        };
+        // Uniforms a program does not declare are ignored by OpenGL(location -1),
+        // so an unlit shader can simply skip the light uniforms.
+        void ApplyFrameUniforms(const ShaderProgram& program, const FrameData& frame)
+        {
+            program.SetMatrix4("uView", frame.view);
+            program.SetMatrix4("uProjection", frame.projection);
+            program.SetVector3("uViewPos", frame.viewPosition);
+            program.SetBool("uLightingEnabled", frame.light != nullptr);
+            if (frame.light != nullptr)
+            {
+                program.SetVector3("uLightPos", frame.light->GetPosition());
+                program.SetVector3("uLightColor", frame.light->GetColor() * frame.light->GetIntensity());
+            }
         }
     }
 
-    Renderer::Renderer() : program(CreateDefaultProgram())
+    Renderer::Renderer()
     {
         Context::SetClearColor(0.10f, 0.20f, 0.40f, 1.0f);
         Context::EnableDepthTest();
@@ -67,49 +52,54 @@ void main()
 
         viewportWidth = width;
         viewportHeight = height;
-
         Context::SetViewport(0, 0, width, height);
     }
 
     void Renderer::Render()
     {
         Context::Clear();
-        Context::UseProgram(program);
-
-
-        // Without a camera everything is drawn directly in clip space (identity view and projection).
-        Math::Matrix4 view = Math::Matrix4::Identity();
-        Math::Matrix4 projection = Math::Matrix4::Identity();
+        FrameData frame;
 
         if (const Components::Camera* camera = RenderRegistry::GetCamera())
         {
             const float aspectRatio = static_cast<float>(viewportWidth) / static_cast<float>(viewportHeight > 0 ? viewportHeight : 1);
 
-            view = camera->GetViewMatrix();
-            projection = camera->GetProjectionMatrix(aspectRatio);
+            frame.view = camera->GetViewMatrix();
+            frame.projection = camera->GetProjectionMatrix(aspectRatio);
+            frame.viewPosition = camera->GetPosition();
         }
 
-        program.SetMatrix4("uView", view);
-        program.SetMatrix4("uProjection", projection);
+        frame.light = RenderRegistry::GetLight();
+        const ShaderProgram* current = nullptr;
 
         for (const RenderRegistry::Entry& entry : RenderRegistry::GetItems())
         {
             const RenderItem& item = entry.item;
-            const auto& [mesh, transform] = item;
-
-            if (!mesh)
+            if (!item.mesh || !item.material)
                 continue;
 
-            const Math::Matrix4 world = transform ? transform->GetWorldMatrix() : Math::Matrix4::Identity();
-            program.SetMatrix4("uModel", world);
-            Context::BindVertexArray(mesh->GetVertexArray());
+            const ShaderProgram& program = item.material->GetProgram();
+            // Switch programs only when the object needs a different one.
+            if (&program != current)
+            {
+                Context::UseProgram(program);
+                ApplyFrameUniforms(program, frame);
+                current = &program;
+            }
 
-            if (mesh->IsIndexed())
-                Context::DrawElements(mesh->GetCount());
+            const Math::Matrix4 world = item.transform ? item.transform->GetWorldMatrix() : Math::Matrix4::Identity();
+
+            program.SetMatrix4("uModel", world);
+            item.material->Apply();
+            Context::BindVertexArray(item.mesh->GetVertexArray());
+
+            if (item.mesh->IsIndexed())
+                Context::DrawElements(item.mesh->GetCount());
             else
-                Context::DrawArrays(mesh->GetCount());
+                Context::DrawArrays(item.mesh->GetCount());
 
             Context::UnbindVertexArray();
         }
     }
 }
+

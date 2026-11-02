@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Material.hpp"
 #include "MeshBuffers.hpp"
 #include "KekWorld/Transform.hpp"
 
@@ -13,5 +14,6 @@ namespace Kek::Graphics
     {
         const MeshBuffers* mesh;
         const World::Transform* transform;
+        const Material* material;
     };
 }

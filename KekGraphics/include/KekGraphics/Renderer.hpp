@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include "OpenGL/Objects/ShaderProgram.hpp"
 #include "KekMath/Matrix4.hpp"
 
 namespace Kek::Graphics
@@ -9,8 +8,6 @@ namespace Kek::Graphics
     /// @brief Draws registered render items. Must be created while the OpenGL context is current.
     class Renderer final
     {
-        OpenGL::Objects::ShaderProgram program;
-
         int viewportWidth = 1;
         int viewportHeight = 1;
 

@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "KekGraphics/OpenGL/ObjectFactory.hpp"
+#include "KekGraphics/OpenGL/Context.hpp"
 
 namespace Kek::Graphics::OpenGL
 {
@@ -122,4 +123,15 @@ namespace Kek::Graphics::OpenGL
 
         return shaderProgram;
     }
+
+    Texture ObjectFactory::CreateTexture(const int width, const int height, const unsigned char* rgba)
+    {
+        GLuint id = 0;
+        glGenTextures(1, &id);
+        Texture texture{id};
+        Context::BindTexture(texture, 0);
+        Context::UploadTexture2D(width, height, rgba);
+        return texture;
+    }
+
 }

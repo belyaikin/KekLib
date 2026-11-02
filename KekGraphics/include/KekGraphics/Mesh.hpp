@@ -3,6 +3,8 @@
 //
 
 #pragma once
+#include <array>
+#include <cstddef>
 #include <utility>
 #include <vector>
 
@@ -27,7 +29,9 @@ namespace Kek::Graphics
         [[nodiscard]] static Mesh Triangle();
         /// @brief A colored 1x1 quad in the XY plane, built from 4 vertices and 6 indices.
         [[nodiscard]] static Mesh Quad();
-        /// @brief A colored cube with side 1, centered at the origin (8 vertices, 36 indices).
+        /// @brief A cube with side 1, one color per face (24 vertices with flat normals, 36 indices).
         [[nodiscard]] static Mesh Cube();
+        /// @brief The same cube painted in a single color.
+        [[nodiscard]] static Mesh Cube(const Math::Vector3& color);
     };
 }

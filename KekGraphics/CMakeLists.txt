@@ -26,6 +26,13 @@ add_library(KekGraphics STATIC
         include/KekGraphics/Components/MeshDisplay.hpp
         deps/glad/src/gl.c
         include/KekGraphics/RenderItem.hpp
+        include/KekGraphics/Components/Light.hpp
+        src/Light.cpp
+        include/KekGraphics/Material.hpp
+        include/KekGraphics/ShaderLibrary.hpp
+        src/Material.cpp
+        src/ShaderLibrary.cpp
+        include/KekGraphics/OpenGL/Objects/Texture.hpp
 )
 
 target_include_directories(KekGraphics PUBLIC
@@ -33,4 +40,4 @@ target_include_directories(KekGraphics PUBLIC
         deps/glad/include
 )
 
-target_link_libraries(KekGraphics PUBLIC KekMath KekWorld)
+target_link_libraries(KekGraphics PUBLIC KekMath KekWorld KekAssets)

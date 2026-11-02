@@ -33,6 +33,8 @@ namespace Kek::Graphics::Components
         /// @brief World -> camera space. Uses the node's position and rotation (scale and parents are ignored).
         [[nodiscard]] Math::Matrix4 GetViewMatrix() const;
 
+        [[nodiscard]] Math::Vector3 GetPosition() const;
+
         [[nodiscard]] Math::Matrix4 GetProjectionMatrix(float aspectRatio) const;
     };
 }

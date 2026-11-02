@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Components/Camera.hpp"
+#include "Components/Light.hpp"
 #include "RenderItem.hpp"
 
 namespace Kek::Graphics
@@ -20,6 +21,7 @@ namespace Kek::Graphics
 
         inline static std::vector<Entry> items;
         inline static std::vector<const Components::Camera*> cameras;
+        inline static std::vector<const Components::Light*> lights;
 
         static void Register(const void* owner, const RenderItem& item)
         {
@@ -48,6 +50,22 @@ namespace Kek::Graphics
         [[nodiscard]] static const Components::Camera* GetCamera()
         {
             return cameras.empty() ? nullptr : cameras.front();
+        }
+
+        static void RegisterLight(const Components::Light* light)
+        {
+            if (light && std::find(lights.begin(), lights.end(), light) == lights.end())
+                lights.push_back(light);
+        }
+
+        static void UnregisterLight(const Components::Light* light)
+        {
+            std::erase(lights, light);
+        }
+
+        [[nodiscard]] static const Components::Light* GetLight()
+        {
+            return lights.empty() ? nullptr : lights.front();
         }
     };
 }
