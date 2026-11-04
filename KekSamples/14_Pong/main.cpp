@@ -49,7 +49,7 @@ namespace
 
 struct Ball final : Kek::World::Component
 {
-    static constexpr float StartSpeed = 0.06f;
+    static constexpr float StartSpeed = 0.08f;
 
     Vector3 direction{1, 0.6f, 0};
     float speed = StartSpeed;
@@ -119,7 +119,7 @@ static void BounceOffPaddle(const Node* paddle, Node* ballNode, const float outw
 
 struct PlayerPaddleController final : Kek::World::Component
 {
-    float speed = 0.1f;
+    float speed = 0.06f;
     Node* ball = nullptr;
 
     void Tick() override
@@ -128,8 +128,8 @@ struct PlayerPaddleController final : Kek::World::Component
         const Vector3 position = transform->GetPosition();
 
         float direction = 0.0f;
-        if (Kek::Input::GetKey(Key::Up) || Kek::Input::GetKey(Key::W)) direction += 1.0f;
-        if (Kek::Input::GetKey(Key::Down) || Kek::Input::GetKey(Key::S)) direction -= 1.0f;
+        if (Kek::Input::GetKey(Key::W)) direction += 1.0f;
+        if (Kek::Input::GetKey(Key::S)) direction -= 1.0f;
 
         transform->SetPosition(Vector3{
             position.X(),
@@ -141,30 +141,30 @@ struct PlayerPaddleController final : Kek::World::Component
     }
 };
 
-struct EnemyPaddleAI final : Kek::World::Component
+struct PlayerPaddleController2 final : Kek::World::Component
 {
     float speed = 0.06f;
     Node* ball = nullptr;
 
     void Tick() override
     {
-        if (ball == nullptr) return;
-
         auto* transform = GetNode()->GetComponent<Transform>();
         const Vector3 position = transform->GetPosition();
-        const Vector3 ballPosition = ball->GetComponent<Transform>()->GetPosition();
 
-        const float movement = std::clamp(ballPosition.Y() - position.Y(), -speed, speed);
+        float direction = 0.0f;
+        if (Kek::Input::GetKey(Key::Up)) direction += 1.0f;
+        if (Kek::Input::GetKey(Key::Down)) direction -= 1.0f;
 
         transform->SetPosition(Vector3{
             position.X(),
-            std::clamp(position.Y() + movement, -FieldHalfHeight, FieldHalfHeight),
+            std::clamp(position.Y() + direction * speed, -FieldHalfHeight, FieldHalfHeight),
             position.Z()
         });
 
         BounceOffPaddle(GetNode(), ball, -1.0f);
     }
 };
+
 
 struct LightFollow final : Kek::World::Component
 {
@@ -204,7 +204,7 @@ int main()
     root->AddChild(std::move(playerPaddle));
 
     auto enemyPaddle = MakePaddle(2.5f, Vector3{1.0f, 0.35f, 0.35f});
-    enemyPaddle->AttachComponent<EnemyPaddleAI>()->ball = ballNode;
+    enemyPaddle->AttachComponent<PlayerPaddleController2>()->ball = ballNode;
     root->AddChild(std::move(enemyPaddle));
 
     auto light = std::make_unique<Node>();
