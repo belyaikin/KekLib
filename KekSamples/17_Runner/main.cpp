@@ -7,12 +7,15 @@
 
 #include <algorithm>
 #include <cmath>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <random>
+#include <string>
 #include <utility>
 #include <vector>
 
+#include "KekGraphics/Hud.hpp"
 #include "KekApplication/Application.hpp"
 #include "KekGraphics/Components/Camera.hpp"
 #include "KekGraphics/Components/Light.hpp"
@@ -22,6 +25,7 @@
 #include "KekWorld/Transform.hpp"
 
 using namespace Kek::Graphics;
+using Hud::Hidden;
 using Kek::Input::Key;
 using Kek::Math::Vector3;
 using Kek::World::Node;
@@ -43,7 +47,6 @@ namespace
     constexpr int MarkerCount = 20;
     constexpr float MarkerSpacing = TrackLength / MarkerCount;
 
-    constexpr float Hidden = -100.0f;
 
     // AABB overlap between two boxes given by center and size
     bool Overlaps(const Vector3& aPos, const Vector3& aSize, const Vector3& bPos, const Vector3& bSize)
@@ -53,34 +56,65 @@ namespace
                std::abs(aPos.Z() - bPos.Z()) <= (aSize.Z() + bSize.Z()) * 0.5f;
     }
 
+    enum Kind { Low = 0, Tall = 1, Overhead = 2, Train = 3 };
+    constexpr int KindCount = 4;
+
+    Vector3 ObstacleSize(const int kind)
+    {
+        switch (kind)
+        {
+            case Low:      return Vector3{1.3f, 0.6f, 0.6f};  // jump over
+            case Tall:     return Vector3{1.3f, 2.0f, 0.8f};  // dodge
+            case Overhead: return Vector3{1.4f, 0.5f, 0.8f};  // slide under
+            default:       return Vector3{1.4f, 2.2f, 8.0f};  // train: dodge
+        }
+    }
+
+    float ObstacleY(const int kind)
+    {
+        switch (kind)
+        {
+            case Low: return 0.3f;
+            case Tall: return 1.0f;
+            case Overhead: return 1.15f; // bottom edge at 0.9
+            default: return 1.1f;
+        }
+    }
+
+    Vector3 ObstacleColor(const int kind)
+    {
+        switch (kind)
+        {
+            case Low: return Vector3{1.0f, 0.55f, 0.1f};
+            case Tall: return Vector3{0.9f, 0.2f, 0.2f};
+            case Overhead: return Vector3{0.7f, 0.3f, 0.9f};
+            default: return Vector3{0.35f, 0.45f, 0.6f};
+        }
+    }
+
     // Creates a colored cube node, adds it to the root and returns its Transform
     Transform* AddCube(Node& root, const Vector3& position, const Vector3& scale, const Vector3& color)
     {
-        auto node = std::make_unique<Node>();
-        auto* transform = node->AttachComponent<Transform>(position);
-        transform->SetScale(scale);
-        node->AttachComponent<Components::MeshDisplay>(Mesh::Cube(color));
-        root.AddChild(std::move(node));
+        Transform* transform = Hud::MakeCube(root, color, false, scale);
+        transform->SetPosition(position);
         return transform;
     }
 }
 
 struct RunnerGame final : Kek::World::Component
 {
-    enum class Kind { Low, Tall, Overhead };
 
     struct Obstacle
     {
-        Transform* transform = nullptr;
-        Kind kind = Kind::Low;
+        Transform* variants[KindCount]{}; // one cube per kind
+        int kind = -1;                    // -1 = inactive
         int lane = 0;
-        bool active = false;
     };
 
     struct Row
     {
         float z = 0;
-        Obstacle obstacles[2];
+        Obstacle obstacles[3];
         Transform* coin = nullptr;
         int coinLane = 0;
         bool coinActive = false;
@@ -111,53 +145,30 @@ struct RunnerGame final : Kek::World::Component
     int RandomLane() { return std::uniform_int_distribution<int>(-1, 1)(rng); }
     float Chance() { return std::uniform_real_distribution<float>(0.0f, 1.0f)(rng); }
 
-    void Configure(Obstacle& o, const Kind kind, const int lane)
-    {
-        o.active = true;
-        o.kind = kind;
-        o.lane = lane;
 
-        switch (kind)
-        {
-            case Kind::Low: o.transform->SetScale(Vector3{1.2f, 0.6f, 0.6f}); break; // jump over
-            case Kind::Tall: o.transform->SetScale(Vector3{1.2f, 2.0f, 0.8f}); break; // dodge
-            case Kind::Overhead: o.transform->SetScale(Vector3{1.3f, 0.6f, 0.8f}); break; // slide under
-        }
-    }
-
-    void Deactivate(Obstacle& o)
+    void HideObstacle(Obstacle& o)
     {
-        o.active = false;
-        o.transform->SetPosition(Vector3{0, Hidden, 0});
-    }
-
-    float ObstacleY(const Kind kind) const
-    {
-        switch (kind)
-        {
-            case Kind::Low: return 0.3f;
-            case Kind::Tall: return 1.0f;
-            case Kind::Overhead: return 1.2f;
-        }
-        return 0.0f;
+        for (Transform* variant : o.variants)
+            variant->SetPosition(Vector3{0, Hidden, 0});
+        o.kind = -1;
     }
 
     // Fills a row with a fresh random layout: 1-2 obstacles (never all three lanes) and a coin
     void RollRow(Row& row)
     {
+        for (Obstacle& o : row.obstacles) HideObstacle(o);
+
         const int laneA = RandomLane();
         const float r = Chance();
-        Configure(row.obstacles[0], r < 0.4f ? Kind::Low : (r < 0.7f ? Kind::Tall : Kind::Overhead), laneA);
+        row.obstacles[0].kind = r < 0.4f ? Low : (r < 0.7f ? Tall : Overhead);
+        row.obstacles[0].lane = laneA;
 
         if (Chance() < 0.4f)
         {
             int laneB = RandomLane();
             if (laneB == laneA) laneB = laneA == 1 ? -1 : laneA + 1;
-            Configure(row.obstacles[1], Chance() < 0.5f ? Kind::Low : Kind::Overhead, laneB);
-        }
-        else
-        {
-            Deactivate(row.obstacles[1]);
+            row.obstacles[1].kind = Chance() < 0.5f ? Low : Overhead;
+            row.obstacles[1].lane = laneB;
         }
 
         row.coinLane = RandomLane();
@@ -264,12 +275,12 @@ struct RunnerGame final : Kek::World::Component
 
             for (Obstacle& o : row.obstacles)
             {
-                if (!o.active) continue;
+                if (o.kind < 0) continue;
 
                 const Vector3 pos{static_cast<float>(o.lane) * LaneWidth, ObstacleY(o.kind), row.z};
-                o.transform->SetPosition(pos);
+                o.variants[o.kind]->SetPosition(pos);
 
-                if (Overlaps(playerPos, playerSize, pos, o.transform->GetScale()))
+                if (Overlaps(playerPos, playerSize, pos, ObstacleSize(o.kind)))
                     Die();
             }
 
@@ -364,9 +375,9 @@ int main()
     {
         for (auto& o : row.obstacles)
         {
-            o.transform = AddCube(*root, Vector3{0, Hidden, 0}, Vector3{1, 1, 1}, Vector3{1.0f, 0.35f, 0.3f});
+            for (int k = 0; k < KindCount; ++k)
+                o.variants[k] = AddCube(*root, Vector3{0, Hidden, 0}, ObstacleSize(k), ObstacleColor(k));
         }
-        row.coin = AddCube(*root, Vector3{0, Hidden, 0}, Vector3{0.35f, 0.35f, 0.1f}, Vector3{1.0f, 0.85f, 0.1f});
     }
 
     runner->camera = cameraTransform;
