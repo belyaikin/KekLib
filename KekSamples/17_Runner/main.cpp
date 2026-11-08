@@ -111,13 +111,18 @@ struct RunnerGame final : Kek::World::Component
         int lane = 0;
     };
 
+    struct Coin
+    {
+        Transform* transform = nullptr;
+        Vector3 pos{0, Hidden, 0};
+        bool active = false;
+    };
+
     struct Row
     {
         float z = 0;
         Obstacle obstacles[3];
-        Transform* coin = nullptr;
-        int coinLane = 0;
-        bool coinActive = false;
+        Coin coins[5];
     };
 
     Transform* player = nullptr;
@@ -171,8 +176,13 @@ struct RunnerGame final : Kek::World::Component
             row.obstacles[1].lane = laneB;
         }
 
-        row.coinLane = RandomLane();
-        row.coinActive = true;
+        const float x = static_cast<float>(RandomLane()) * LaneWidth;
+        for (int i = 0; i < 5; ++i)
+        {
+            Coin& c = row.coins[i];
+            c.active = true;
+            c.pos = Vector3{x, 0.7f, row.z - RowSpacing * 0.5f + (-4.0f + 2.0f * static_cast<float>(i))};
+        }
     }
 
     void Reset()
@@ -247,6 +257,8 @@ struct RunnerGame final : Kek::World::Component
         return Vector3{playerX, jumpHeight + PlayerSize().Y() * 0.5f, 0};
     }
 
+    [[nodiscard]] int Score() const { return static_cast<int>(distance) + coins * 10; }
+
     void UpdateWorld()
     {
         const float step = speed * Dt;
@@ -263,6 +275,7 @@ struct RunnerGame final : Kek::World::Component
 
         const Vector3 playerPos = PlayerPosition();
         const Vector3 playerSize = PlayerSize();
+        const Vector3 coinSize{0.5f, 0.5f, 0.5f};
 
         for (Row& row : rows)
         {
@@ -285,21 +298,20 @@ struct RunnerGame final : Kek::World::Component
             }
 
             // The coin sits halfway between this row and the next one
-            if (row.coinActive)
+            for (Coin& c : row.coins)
             {
-                const Vector3 coinPos{static_cast<float>(row.coinLane) * LaneWidth, 0.7f, row.z - RowSpacing * 0.5f};
-                row.coin->SetPosition(coinPos);
-                row.coin->Rotate(Vector3{0, 0.1f, 0});
+                if (!c.active) continue;
 
-                if (Overlaps(playerPos, playerSize, coinPos, row.coin->GetScale()))
+                c.pos = Vector3{c.pos.X(), c.pos.Y(), c.pos.Z() + step};
+                c.transform->SetPosition(c.pos);
+                c.transform->Rotate(Vector3{0, 0.12f, 0});
+
+                if (Overlaps(playerPos, playerSize, c.pos, coinSize))
                 {
-                    row.coinActive = false;
+                    c.active = false;
+                    c.transform->SetPosition(Vector3{0, Hidden, 0});
                     ++coins;
                 }
-            }
-            else
-            {
-                row.coin->SetPosition(Vector3{0, Hidden, 0});
             }
         }
     }
@@ -311,7 +323,7 @@ struct RunnerGame final : Kek::World::Component
         deadTimer = 1.5f;
         std::cout << "Crashed! Distance: " << static_cast<int>(distance)
                   << " m, coins: " << coins
-                  << ", score: " << static_cast<int>(distance) + coins * 10 << "\n";
+                  << ", score: " << Score() << "\n";
     }
 
     void Tick() override
