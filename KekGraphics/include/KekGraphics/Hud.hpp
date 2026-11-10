@@ -133,4 +133,92 @@ namespace Hud
                     Put(segment, false);
         }
     };
+
+    // Pixel text (letters A B C D E G M N O P R S T U V W and space).
+    class Text final
+    {
+        using Rows = std::array<const char*, 5>;
+
+        std::vector<Transform*> pixels;
+        std::string shownText;
+        float shownX = 0, shownY = 0, shownSize = 0;
+        bool visible = false;
+
+        static const Rows* Glyph(const char c)
+        {
+            static const std::map<char, Rows> glyphs = {
+                {'A', Rows{".X.", "X.X", "XXX", "X.X", "X.X"}},
+                {'B', Rows{"XX.", "X.X", "XX.", "X.X", "XX."}},
+                {'C', Rows{".XX", "X..", "X..", "X..", ".XX"}},
+                {'D', Rows{"XX.", "X.X", "X.X", "X.X", "XX."}},
+                {'E', Rows{"XXX", "X..", "XX.", "X..", "XXX"}},
+                {'G', Rows{".XX", "X..", "X.X", "X.X", ".XX"}},
+                {'M', Rows{"X.X", "XXX", "XXX", "X.X", "X.X"}},
+                {'N', Rows{"XX.", "X.X", "X.X", "X.X", "X.X"}},
+                {'O', Rows{"XXX", "X.X", "X.X", "X.X", "XXX"}},
+                {'P', Rows{"XX.", "X.X", "XX.", "X..", "X.."}},
+                {'R', Rows{"XX.", "X.X", "XX.", "X.X", "X.X"}},
+                {'S', Rows{".XX", "X..", ".X.", "..X", "XX."}},
+                {'T', Rows{"XXX", ".X.", ".X.", ".X.", ".X."}},
+                {'U', Rows{"X.X", "X.X", "X.X", "X.X", "XXX"}},
+                {'V', Rows{"X.X", "X.X", "X.X", "X.X", ".X."}},
+                {'W', Rows{"X.X", "X.X", "XXX", "XXX", "X.X"}},
+            };
+
+            const auto it = glyphs.find(c);
+            return it == glyphs.end() ? nullptr : &it->second;
+        }
+
+    public:
+        Text(Node& parent, const Vector3& color, const int capacity)
+        {
+            for (int i = 0; i < capacity; ++i)
+                pixels.push_back(MakeCube(parent, color, true));
+        }
+
+        void Show(const std::string& text, const float cx, const float cy, const float pixel)
+        {
+            if (visible && text == shownText && cx == shownX && cy == shownY && pixel == shownSize) return;
+            visible = true;
+            shownText = text;
+            shownX = cx;
+            shownY = cy;
+            shownSize = pixel;
+
+            const float columns = static_cast<float>(text.size()) * 4.0f - 1.0f;
+            std::size_t used = 0;
+
+            for (std::size_t ci = 0; ci < text.size(); ++ci)
+            {
+                const Rows* glyph = Glyph(text[ci]);
+                if (glyph == nullptr) continue;
+
+                for (int row = 0; row < 5; ++row)
+                {
+                    for (int col = 0; col < 3; ++col)
+                    {
+                        if ((*glyph)[row][col] != 'X' || used >= pixels.size()) continue;
+
+                        const float x = cx + (static_cast<float>(ci * 4 + col) - (columns - 1.0f) * 0.5f) * pixel;
+                        const float y = cy + static_cast<float>(2 - row) * pixel;
+
+                        pixels[used]->SetScale(Vector3{pixel * 0.92f, pixel * 0.92f, 0.02f});
+                        pixels[used]->SetPosition(Vector3{x, y, Depth});
+                        ++used;
+                    }
+                }
+            }
+
+            for (; used < pixels.size(); ++used)
+                pixels[used]->SetPosition(Vector3{0, Hidden, Depth});
+        }
+
+        void Hide()
+        {
+            if (!visible) return;
+            visible = false;
+            for (Transform* pixel : pixels)
+                pixel->SetPosition(Vector3{0, Hidden, Depth});
+        }
+    };
 }
