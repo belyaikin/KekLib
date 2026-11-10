@@ -191,7 +191,6 @@ struct RunnerGame final : Kek::World::Component
         }
     }
 
-    Transform* player = nullptr;
     Transform* camera = nullptr;
     std::vector<Transform*> markers;
     std::vector<Row> rows;
@@ -319,13 +318,64 @@ struct RunnerGame final : Kek::World::Component
             SetVisible(hearts[i], HudPos(-0.9f + 0.2f * static_cast<float>(i), 1.27f), static_cast<int>(i) < lives);
     }
 
-    void PlacePlayer()
-    {
-        const bool blink = state == State::Playing && invulnTimer > 0.0f && static_cast<int>(invulnTimer * 14.0f) % 2 == 0;
-        const Vector3 pos = PlayerPosition();
+        Transform* body = nullptr;
+    Transform* head = nullptr;
+    Transform* legL = nullptr;
+    Transform* legR = nullptr;
+    Transform* shadow = nullptr;
 
-        player->SetPosition(blink ? Vector3{pos.X(), Hidden, pos.Z()} : pos);
-        player->SetScale(PlayerSize());
+    float runPhase = 0;
+
+    void AnimatePlayer()
+    {
+        const float x = playerX;
+        const float feet = jumpHeight;
+        const bool sliding = slideTimer > 0.0f;
+        const bool air = feet > 0.001f;
+        const bool dead = state == State::GameOver;
+        const bool blink = state == State::Playing && invulnTimer > 0.0f && static_cast<int>(invulnTimer * 14.0f) % 2 == 0;
+
+        runPhase += (4.0f + speed) * Dt;
+
+        const float swing = std::sin(runPhase);
+        const float bob = (air || sliding || dead) ? 0.0f : std::abs(swing) * 0.05f;
+        const float tilt = std::clamp((x - static_cast<float>(targetLane) * LaneWidth) * 0.25f, -0.35f, 0.35f);
+
+        auto put = [&](Transform* t, const Vector3& pos, const Vector3& scale)
+        {
+            t->SetScale(scale);
+            t->SetPosition(blink ? Vector3{pos.X(), Hidden, pos.Z()} : pos);
+        };
+
+        if (dead)
+        {
+            put(body, {x, 0.2f, 0}, {1.0f, 0.4f, 0.5f});
+            put(head, {x + 0.7f, 0.22f, 0}, {0.38f, 0.38f, 0.38f});
+            put(legL, {x - 0.65f, 0.15f, 0.15f}, {0.4f, 0.25f, 0.28f});
+            put(legR, {x - 0.65f, 0.15f, -0.15f}, {0.4f, 0.25f, 0.28f});
+            body->SetRotation(Vector3{0, 0, 0});
+        }
+        else if (sliding)
+        {
+            put(body, {x, feet + 0.22f, 0}, {0.8f, 0.4f, 0.9f});
+            put(head, {x, feet + 0.45f, -0.4f}, {0.34f, 0.34f, 0.34f});
+            put(legL, {x - 0.2f, feet + 0.13f, 0.6f}, {0.26f, 0.26f, 0.5f});
+            put(legR, {x + 0.2f, feet + 0.13f, 0.6f}, {0.26f, 0.26f, 0.5f});
+            body->SetRotation(Vector3{0, 0, 0});
+        }
+        else
+        {
+            const float legZ = air ? 0.25f : swing * 0.3f;
+            put(legL, {x - 0.2f, feet + 0.22f, legZ}, {0.3f, 0.44f, 0.3f});
+            put(legR, {x + 0.2f, feet + 0.22f, -legZ}, {0.3f, 0.44f, 0.3f});
+            put(body, {x, feet + 0.69f + bob, 0}, {0.8f, 0.5f, 0.5f});
+            put(head, {x, feet + 1.02f + bob, 0}, {0.38f, 0.38f, 0.38f});
+            body->SetRotation(Vector3{0, 0, tilt});
+        }
+
+        const float k = 1.0f / (1.0f + feet * 0.6f);
+        shadow->SetScale(Vector3{0.9f * k, 0.02f, 0.7f * k});
+        shadow->SetPosition(Vector3{x, 0.03f, 0});
     }
 
     void UpdateCamera()
@@ -518,7 +568,7 @@ struct RunnerGame final : Kek::World::Component
     {
         speed = 6.0f;
         ScrollDecor(speed * Dt);
-        PlacePlayer();
+        AnimatePlayer();
         UpdateCamera();
         UpdatePrompt();
 
@@ -548,7 +598,7 @@ struct RunnerGame final : Kek::World::Component
         invulnTimer = std::max(0.0f, invulnTimer - Dt);
         if (state == State::Playing) UpdateHud();
 
-        PlacePlayer();
+        AnimatePlayer();
         UpdateCamera();
     }
 
@@ -566,7 +616,7 @@ struct RunnerGame final : Kek::World::Component
 
     void TickGameOver()
     {
-        PlacePlayer();
+        AnimatePlayer();
         UpdateCamera();
         UpdatePrompt();
 
@@ -681,7 +731,11 @@ int main()
     }
 
     // Player
-    runner->player = AddCube(*root, Vector3{0, 0.6f, 0}, Vector3{0.8f, StandHeight, 0.6f}, Vector3{0.3f, 0.8f, 1.0f});
+    runner->legL = Hud::MakeCube(*root, Vector3{0.15f, 0.2f, 0.5f}, false);
+    runner->legR = Hud::MakeCube(*root, Vector3{0.15f, 0.2f, 0.5f}, false);
+    runner->body = Hud::MakeCube(*root, Vector3{0.25f, 0.6f, 1.0f}, false);
+    runner->head = Hud::MakeCube(*root, Vector3{1.0f, 0.8f, 0.65f}, false);
+    runner->shadow = Hud::MakeCube(*root, Vector3{0.05f, 0.05f, 0.07f}, true);
 
     // Object pool: rows of obstacles and coins that get recycled as they pass the camera
     runner->rows.resize(RowCount);
