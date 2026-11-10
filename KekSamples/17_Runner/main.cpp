@@ -470,7 +470,11 @@ struct RunnerGame final : Kek::World::Component
         stateTimer = 0;
 
         newRecord = Score() > best;
-        if (newRecord) best = Score();
+        if (newRecord)
+        {
+            best = Score();
+            SaveBest();
+        }
 
         std::cout << "Crashed! Distance: " << static_cast<int>(distance) << " m, coins: " << coins
                   << ", score: " << Score() << ", best: " << best << std::endl;
@@ -539,6 +543,7 @@ struct RunnerGame final : Kek::World::Component
 
     void Start() override
     {
+        LoadBest();
         for (Building& b : buildings)
         {
             Reroll(b);
@@ -560,6 +565,21 @@ struct RunnerGame final : Kek::World::Component
             case State::Paused: TickPaused(); break;
             case State::GameOver: TickGameOver(); break;
         }
+    }
+
+    static constexpr const char* BestFile = "runner_best.txt";
+
+    void LoadBest()
+    {
+        std::ifstream file(BestFile);
+        int value = 0;
+        if (file >> value) best = value;
+    }
+
+    void SaveBest() const
+    {
+        std::ofstream file(BestFile);
+        file << best;
     }
 };
 
