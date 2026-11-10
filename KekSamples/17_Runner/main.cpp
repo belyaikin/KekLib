@@ -47,6 +47,10 @@ namespace
     constexpr int MarkerCount = 20;
     constexpr float MarkerSpacing = TrackLength / MarkerCount;
 
+    constexpr float DecorLength = 140.0f;
+    constexpr float DecorRecycleZ = 14.0f;
+    constexpr int BuildingsPerSide = 14;
+
 
     // AABB overlap between two boxes given by center and size
     bool Overlaps(const Vector3& aPos, const Vector3& aSize, const Vector3& bPos, const Vector3& bSize)
@@ -124,6 +128,43 @@ struct RunnerGame final : Kek::World::Component
         Obstacle obstacles[3];
         Coin coins[5];
     };
+
+    struct Building
+    {
+        Transform* transform = nullptr;
+        float z = 0;
+        float side = 1;
+        float width = 4;
+        float height = 8;
+    };
+
+    std::vector<Building> buildings;
+
+    void Reroll(Building& b)
+    {
+        b.width = 3.0f + Chance() * 3.0f;
+        b.height = 5.0f + Chance() * 11.0f;
+        b.transform->SetScale(Vector3{b.width, b.height, 8.0f});
+    }
+
+    void PlaceBuilding(const Building& b)
+    {
+        b.transform->SetPosition(Vector3{b.side * (6.0f + b.width * 0.5f), b.height * 0.5f - 0.3f, b.z});
+    }
+
+    void ScrollBuildings(const float step)
+    {
+        for (Building& b : buildings)
+        {
+            b.z += step;
+            if (b.z > DecorRecycleZ)
+            {
+                b.z -= DecorLength;
+                Reroll(b);
+            }
+            PlaceBuilding(b);
+        }
+    }
 
     Transform* player = nullptr;
     Transform* camera = nullptr;
@@ -207,6 +248,12 @@ struct RunnerGame final : Kek::World::Component
 
     void Start() override
     {
+        for (Building& b : buildings)
+        {
+            Reroll(b);
+            PlaceBuilding(b);
+        }
+
         Reset();
     }
 
@@ -272,6 +319,8 @@ struct RunnerGame final : Kek::World::Component
             if (z > RecycleZ) z -= TrackLength;
             marker->SetPosition(Vector3{p.X(), p.Y(), z});
         }
+
+        ScrollBuildings(step);
 
         const Vector3 playerPos = PlayerPosition();
         const Vector3 playerSize = PlayerSize();
@@ -378,6 +427,29 @@ int main()
         }
     }
 
+    // Ground strips and buildings on both sides
+    std::mt19937 colorRng{std::random_device{}()};
+    const Vector3 palette[6] = {
+        {0.30f, 0.32f, 0.45f}, {0.45f, 0.30f, 0.32f}, {0.28f, 0.42f, 0.40f},
+        {0.50f, 0.45f, 0.30f}, {0.35f, 0.30f, 0.50f}, {0.40f, 0.40f, 0.42f},
+    };
+
+    for (const float side : {-1.0f, 1.0f})
+    {
+        AddCube(*root, Vector3{side * 4.3f, -0.2f, -TrackLength * 0.5f}, Vector3{3.4f, 0.2f, TrackLength + 40.0f}, Vector3{0.22f, 0.25f, 0.22f});
+
+        for (int i = 0; i < BuildingsPerSide; ++i)
+        {
+            const int colorIndex = std::uniform_int_distribution<int>(0, 5)(colorRng);
+
+            RunnerGame::Building b;
+            b.transform = AddCube(*root, Vector3{0, Hidden, 0}, Vector3{1, 1, 1}, palette[colorIndex]);
+            b.side = side;
+            b.z = 10.0f - static_cast<float>(i) * (DecorLength / static_cast<float>(BuildingsPerSide));
+            runner->buildings.push_back(b);
+        }
+    }
+
     // Player
     runner->player = AddCube(*root, Vector3{0, 0.6f, 0}, Vector3{0.8f, StandHeight, 0.6f}, Vector3{0.3f, 0.8f, 1.0f});
 
@@ -390,6 +462,9 @@ int main()
             for (int k = 0; k < KindCount; ++k)
                 o.variants[k] = AddCube(*root, Vector3{0, Hidden, 0}, ObstacleSize(k), ObstacleColor(k));
         }
+
+        for (auto& c : row.coins)
+            c.transform = Hud::MakeCube(*root, Vector3{1.0f, 0.85f, 0.1f}, true, Vector3{0.4f, 0.4f, 0.1f});
     }
 
     runner->camera = cameraTransform;
