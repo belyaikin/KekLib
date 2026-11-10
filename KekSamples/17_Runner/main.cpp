@@ -117,6 +117,15 @@ struct RunnerGame final : Kek::World::Component
     int best = 0;
     bool newRecord = false;
 
+    static constexpr int MaxLives = 3;
+
+    int lives = MaxLives;
+    float invulnTimer = 0;
+    float shakeTimer = 0;
+    float camX = 0;
+
+    std::vector<Transform*> hearts;
+
     std::unique_ptr<Hud::Digits> bigScore, bigBest;
     std::unique_ptr<Hud::Text> title, record, prompt, labelScore, labelBest;
 
@@ -305,18 +314,33 @@ struct RunnerGame final : Kek::World::Component
 
         SetVisible(coinIcon, HudPos(0.32f, 1.5f), true);
         coinIcon->Rotate(Vector3{0, 0.08f, 0});
+
+        for (std::size_t i = 0; i < hearts.size(); ++i)
+            SetVisible(hearts[i], HudPos(-0.9f + 0.2f * static_cast<float>(i), 1.27f), static_cast<int>(i) < lives);
     }
 
-        void PlacePlayer()
+    void PlacePlayer()
     {
-        player->SetPosition(PlayerPosition());
+        const bool blink = state == State::Playing && invulnTimer > 0.0f && static_cast<int>(invulnTimer * 14.0f) % 2 == 0;
+        const Vector3 pos = PlayerPosition();
+
+        player->SetPosition(blink ? Vector3{pos.X(), Hidden, pos.Z()} : pos);
         player->SetScale(PlayerSize());
     }
 
     void UpdateCamera()
     {
-        const Vector3 cam = camera->GetPosition();
-        camera->SetPosition(Vector3{playerX * 0.6f, cam.Y(), cam.Z()});
+        camX += (playerX * 0.6f - camX) * 0.1f;
+
+        float shakeX = 0, shakeY = 0;
+        if (shakeTimer > 0.0f)
+        {
+            shakeX = (Chance() - 0.5f) * 0.8f * shakeTimer;
+            shakeY = (Chance() - 0.5f) * 0.8f * shakeTimer;
+            shakeTimer = std::max(0.0f, shakeTimer - Dt);
+        }
+
+        camera->SetPosition(Vector3{camX + shakeX, 3.2f + shakeY, 6.0f});
     }
 
     void ScrollDecor(const float step)
@@ -336,6 +360,7 @@ struct RunnerGame final : Kek::World::Component
     {
         const Vector3 playerPos = PlayerPosition();
         const Vector3 playerSize = PlayerSize();
+        const Vector3 hitSize{playerSize.X() * 0.75f, playerSize.Y() - 0.1f, playerSize.Z() * 0.8f};
         const Vector3 coinSize{0.5f, 0.5f, 0.5f};
 
         for (Row& row : rows)
@@ -354,11 +379,9 @@ struct RunnerGame final : Kek::World::Component
                 const Vector3 pos{static_cast<float>(o.lane) * LaneWidth, ObstacleY(o.kind), row.z};
                 o.variants[o.kind]->SetPosition(pos);
 
-                if (state == State::Playing && Overlaps(playerPos, playerSize, pos, ObstacleSize(o.kind)))
-                {
-                    EndRun();
-                    return;
-                }
+                if (invulnTimer <= 0.0f && state == State::Playing &&
+                    Overlaps(playerPos, hitSize, pos, ObstacleSize(o.kind)))
+                    OnHit();
             }
 
             for (Coin& c : row.coins)
@@ -429,12 +452,16 @@ struct RunnerGame final : Kek::World::Component
         scoreDigits->Hide();
         coinDigits->Hide();
         SetVisible(coinIcon, HudPos(0.32f, 1.5f), false);
+
+        for (std::size_t i = 0; i < hearts.size(); ++i)
+            SetVisible(hearts[i], HudPos(-0.9f + 0.2f * static_cast<float>(i), 1.27f), false);
     }
 
     void EnterMenu()
     {
         state = State::Menu;
         stateTimer = 0;
+        invulnTimer = 0;
         speed = 6.0f;
         HideHud();
         ShowOverlay();
@@ -455,6 +482,9 @@ struct RunnerGame final : Kek::World::Component
         distance = 0;
         coins = 0;
 
+        lives = MaxLives;
+        invulnTimer = shakeTimer = 0;
+
         for (int i = 0; i < static_cast<int>(rows.size()); ++i)
         {
             rows[i].z = -25.0f - static_cast<float>(i) * RowSpacing;
@@ -468,6 +498,7 @@ struct RunnerGame final : Kek::World::Component
     {
         state = State::GameOver;
         stateTimer = 0;
+        invulnTimer = 0;
 
         newRecord = Score() > best;
         if (newRecord)
@@ -514,6 +545,7 @@ struct RunnerGame final : Kek::World::Component
         ScrollDecor(step);
         UpdateRows(step);
 
+        invulnTimer = std::max(0.0f, invulnTimer - Dt);
         if (state == State::Playing) UpdateHud();
 
         PlacePlayer();
@@ -580,6 +612,16 @@ struct RunnerGame final : Kek::World::Component
     {
         std::ofstream file(BestFile);
         file << best;
+    }
+
+    void OnHit()
+    {
+        --lives;
+        invulnTimer = 2.0f;
+        shakeTimer = 0.4f;
+        speed = std::max(StartSpeed, speed * 0.75f);
+
+        if (lives <= 0) EndRun();
     }
 };
 
@@ -672,6 +714,9 @@ int main()
     runner->prompt = std::make_unique<Hud::Text>(cameraRoot, white, 100);
     runner->labelScore = std::make_unique<Hud::Text>(cameraRoot, lightBlue, 50);
     runner->labelBest = std::make_unique<Hud::Text>(cameraRoot, lightBlue, 50);
+
+    for (int i = 0; i < RunnerGame::MaxLives; ++i)
+        runner->hearts.push_back(Hud::MakeCube(cameraRoot, Vector3{1.0f, 0.25f, 0.3f}, true, Vector3{0.14f, 0.14f, 0.03f}));
 
     runner->camera = cameraTransform;
     root->AddChild(std::move(game));
