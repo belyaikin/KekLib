@@ -110,6 +110,20 @@ namespace
 struct RunnerGame final : Kek::World::Component
 {
 
+    enum class State { Menu, Playing, Paused, GameOver };
+
+    State state = State::Menu;
+    float stateTimer = 0;
+    int best = 0;
+    bool newRecord = false;
+
+    std::unique_ptr<Hud::Digits> bigScore, bigBest;
+    std::unique_ptr<Hud::Text> title, record, prompt, labelScore, labelBest;
+
+    static bool Pressed(const Key key) { return Kek::Input::GetKeyPressed(key); }
+    static bool Confirm() { return Pressed(Key::Space) || Pressed(Key::Enter); }
+    static bool PausePressed() { return Pressed(Key::P) || Pressed(Key::Escape); }
+
     struct Obstacle
     {
         Transform* variants[KindCount]{}; // one cube per kind
@@ -184,8 +198,6 @@ struct RunnerGame final : Kek::World::Component
     float speed = 0;
     float distance = 0;
     int coins = 0;
-    bool dead = false;
-    float deadTimer = 0;
 
     static constexpr float StartSpeed = 10.0f;
     static constexpr float MaxSpeed = 24.0f;
@@ -226,37 +238,6 @@ struct RunnerGame final : Kek::World::Component
             c.active = true;
             c.pos = Vector3{x, 0.7f, row.z - RowSpacing * 0.5f + (-4.0f + 2.0f * static_cast<float>(i))};
         }
-    }
-
-    void Reset()
-    {
-        targetLane = 0;
-        playerX = 0;
-        jumpHeight = 0;
-        verticalSpeed = 0;
-        slideTimer = 0;
-        speed = StartSpeed;
-        distance = 0;
-        coins = 0;
-        dead = false;
-        deadTimer = 0;
-
-        for (int i = 0; i < static_cast<int>(rows.size()); ++i)
-        {
-            rows[i].z = -25.0f - static_cast<float>(i) * RowSpacing;
-            RollRow(rows[i]);
-        }
-    }
-
-    void Start() override
-    {
-        for (Building& b : buildings)
-        {
-            Reroll(b);
-            PlaceBuilding(b);
-        }
-
-        Reset();
     }
 
     void HandleInput()
@@ -308,22 +289,51 @@ struct RunnerGame final : Kek::World::Component
 
     [[nodiscard]] int Score() const { return static_cast<int>(distance) + coins * 10; }
 
-    void UpdateWorld()
-    {
-        const float step = speed * Dt;
-        distance += step;
-        speed = std::min(MaxSpeed, speed + 0.3f * Dt);
 
+    std::unique_ptr<Hud::Digits> scoreDigits, coinDigits;
+    Transform* coinIcon = nullptr;
+
+    static void SetVisible(Transform* transform, const Vector3& pos, const bool on)
+    {
+        transform->SetPosition(on ? pos : Vector3{pos.X(), Hidden, pos.Z()});
+    }
+
+    void UpdateHud()
+    {
+        scoreDigits->Show(Score());
+        coinDigits->Show(coins);
+
+        SetVisible(coinIcon, HudPos(0.32f, 1.5f), true);
+        coinIcon->Rotate(Vector3{0, 0.08f, 0});
+    }
+
+        void PlacePlayer()
+    {
+        player->SetPosition(PlayerPosition());
+        player->SetScale(PlayerSize());
+    }
+
+    void UpdateCamera()
+    {
+        const Vector3 cam = camera->GetPosition();
+        camera->SetPosition(Vector3{playerX * 0.6f, cam.Y(), cam.Z()});
+    }
+
+    void ScrollDecor(const float step)
+    {
         for (Transform* marker : markers)
         {
-            Vector3 p = marker->GetPosition();
+            const Vector3 p = marker->GetPosition();
             float z = p.Z() + step;
             if (z > RecycleZ) z -= TrackLength;
             marker->SetPosition(Vector3{p.X(), p.Y(), z});
         }
 
         ScrollBuildings(step);
+    }
 
+    void UpdateRows(const float step)
+    {
         const Vector3 playerPos = PlayerPosition();
         const Vector3 playerSize = PlayerSize();
         const Vector3 coinSize{0.5f, 0.5f, 0.5f};
@@ -344,11 +354,13 @@ struct RunnerGame final : Kek::World::Component
                 const Vector3 pos{static_cast<float>(o.lane) * LaneWidth, ObstacleY(o.kind), row.z};
                 o.variants[o.kind]->SetPosition(pos);
 
-                if (Overlaps(playerPos, playerSize, pos, ObstacleSize(o.kind)))
-                    Die();
+                if (state == State::Playing && Overlaps(playerPos, playerSize, pos, ObstacleSize(o.kind)))
+                {
+                    EndRun();
+                    return;
+                }
             }
 
-            // The coin sits halfway between this row and the next one
             for (Coin& c : row.coins)
             {
                 if (!c.active) continue;
@@ -367,52 +379,187 @@ struct RunnerGame final : Kek::World::Component
         }
     }
 
-    void Die()
+    void HideOverlay()
     {
-        if (dead) return;
-        dead = true;
-        deadTimer = 1.5f;
-        std::cout << "Crashed! Distance: " << static_cast<int>(distance)
-                  << " m, coins: " << coins
-                  << ", score: " << Score() << "\n";
+        title->Hide();
+        record->Hide();
+        prompt->Hide();
+        labelScore->Hide();
+        labelBest->Hide();
+        bigScore->Hide();
+        bigBest->Hide();
     }
 
-    void Tick() override
+    void ShowOverlay()
     {
-        if (dead)
+        HideOverlay();
+
+        switch (state)
         {
-            deadTimer -= Dt;
-            if (deadTimer <= 0.0f) Reset();
+            case State::Menu:
+                title->Show("RUNNER", 0.0f, 0.8f, 0.06f);
+                labelBest->Show("BEST", -0.65f, -0.4f, 0.03f);
+                bigBest->Show(best);
+                break;
+            case State::Paused:
+                title->Show("PAUSED", 0.0f, 0.4f, 0.06f);
+                break;
+            case State::GameOver:
+                title->Show("GAME OVER", 0.0f, 0.9f, 0.045f);
+                if (newRecord) record->Show("NEW BEST", 0.0f, 0.5f, 0.035f);
+                labelScore->Show("SCORE", -0.65f, 0.0f, 0.03f);
+                bigScore->Show(Score());
+                labelBest->Show("BEST", -0.65f, -0.4f, 0.03f);
+                bigBest->Show(best);
+                break;
+            case State::Playing:
+                break;
+        }
+    }
+
+    void UpdatePrompt()
+    {
+        const bool on = std::fmod(stateTimer, 1.0f) < 0.65f;
+        if (on) prompt->Show(state == State::Paused ? "PRESS P" : "PRESS SPACE", 0.0f, -1.0f, 0.03f);
+        else prompt->Hide();
+    }
+
+    void HideHud()
+    {
+        scoreDigits->Hide();
+        coinDigits->Hide();
+        SetVisible(coinIcon, HudPos(0.32f, 1.5f), false);
+    }
+
+    void EnterMenu()
+    {
+        state = State::Menu;
+        stateTimer = 0;
+        speed = 6.0f;
+        HideHud();
+        ShowOverlay();
+    }
+
+    void StartRun()
+    {
+        state = State::Playing;
+        stateTimer = 0;
+
+        targetLane = 0;
+        playerX = 0;
+        jumpHeight = 0;
+        verticalSpeed = 0;
+        slideTimer = 0;
+
+        speed = StartSpeed;
+        distance = 0;
+        coins = 0;
+
+        for (int i = 0; i < static_cast<int>(rows.size()); ++i)
+        {
+            rows[i].z = -25.0f - static_cast<float>(i) * RowSpacing;
+            RollRow(rows[i]);
+        }
+
+        HideOverlay();
+    }
+
+    void EndRun()
+    {
+        state = State::GameOver;
+        stateTimer = 0;
+
+        newRecord = Score() > best;
+        if (newRecord) best = Score();
+
+        std::cout << "Crashed! Distance: " << static_cast<int>(distance) << " m, coins: " << coins
+                  << ", score: " << Score() << ", best: " << best << std::endl;
+
+        HideHud();
+        ShowOverlay();
+    }
+
+    void TickMenu()
+    {
+        speed = 6.0f;
+        ScrollDecor(speed * Dt);
+        PlacePlayer();
+        UpdateCamera();
+        UpdatePrompt();
+
+        if (Confirm()) StartRun();
+    }
+
+    void TickPlaying()
+    {
+        if (PausePressed())
+        {
+            state = State::Paused;
+            stateTimer = 0;
+            ShowOverlay();
             return;
         }
 
         HandleInput();
         UpdatePlayer();
-        UpdateWorld();
-        UpdateHud();
 
-        player->SetPosition(PlayerPosition());
-        player->SetScale(PlayerSize());
+        const float step = speed * Dt;
+        distance += step;
+        speed = std::min(MaxSpeed, speed + 0.3f * Dt);
 
-        const Vector3 cam = camera->GetPosition();
-        camera->SetPosition(Vector3{playerX * 0.6f, cam.Y(), cam.Z()});
+        ScrollDecor(step);
+        UpdateRows(step);
+
+        if (state == State::Playing) UpdateHud();
+
+        PlacePlayer();
+        UpdateCamera();
     }
 
-    std::unique_ptr<Hud::Digits> scoreDigits, coinDigits;
-    Transform* coinIcon = nullptr;
-
-    static void SetVisible(Transform* transform, const Vector3& pos, const bool on)
+    void TickPaused()
     {
-        transform->SetPosition(on ? pos : Vector3{pos.X(), Hidden, pos.Z()});
+        UpdatePrompt();
+
+        if (PausePressed() || Confirm())
+        {
+            state = State::Playing;
+            stateTimer = 0;
+            HideOverlay();
+        }
     }
 
-    void UpdateHud()
+    void TickGameOver()
     {
-        scoreDigits->Show(Score());
-        coinDigits->Show(coins);
+        PlacePlayer();
+        UpdateCamera();
+        UpdatePrompt();
 
-        SetVisible(coinIcon, HudPos(0.32f, 1.5f), true);
-        coinIcon->Rotate(Vector3{0, 0.08f, 0});
+        if (stateTimer > 0.6f && Confirm()) StartRun();
+    }
+
+    void Start() override
+    {
+        for (Building& b : buildings)
+        {
+            Reroll(b);
+            PlaceBuilding(b);
+        }
+
+        std::cout << "A/D or arrows - lane, Space/W/Up - jump, S/Down - slide, P/Esc - pause" << std::endl;
+        EnterMenu();
+    }
+
+    void Tick() override
+    {
+        stateTimer += Dt;
+
+        switch (state)
+        {
+            case State::Menu: TickMenu(); break;
+            case State::Playing: TickPlaying(); break;
+            case State::Paused: TickPaused(); break;
+            case State::GameOver: TickGameOver(); break;
+        }
     }
 };
 
@@ -494,7 +641,18 @@ int main()
     runner->scoreDigits = std::make_unique<Hud::Digits>(cameraRoot, white, 5, -0.55f, 1.5f, 0.9f);
     runner->coinDigits = std::make_unique<Hud::Digits>(cameraRoot, yellow, 3, 0.72f, 1.5f, 0.9f);
     runner->coinIcon = Hud::MakeCube(cameraRoot, yellow, true, Vector3{0.16f, 0.16f, 0.04f});
-    
+    const Vector3 green{0.3f, 1.0f, 0.4f};
+    const Vector3 lightBlue{0.7f, 0.8f, 1.0f};
+
+    runner->bigScore = std::make_unique<Hud::Digits>(cameraRoot, white, 5, 0.35f, 0.0f, 1.0f);
+    runner->bigBest = std::make_unique<Hud::Digits>(cameraRoot, yellow, 5, 0.35f, -0.4f, 1.0f);
+
+    runner->title = std::make_unique<Hud::Text>(cameraRoot, yellow, 90);
+    runner->record = std::make_unique<Hud::Text>(cameraRoot, green, 70);
+    runner->prompt = std::make_unique<Hud::Text>(cameraRoot, white, 100);
+    runner->labelScore = std::make_unique<Hud::Text>(cameraRoot, lightBlue, 50);
+    runner->labelBest = std::make_unique<Hud::Text>(cameraRoot, lightBlue, 50);
+
     runner->camera = cameraTransform;
     root->AddChild(std::move(game));
 
