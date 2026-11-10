@@ -103,6 +103,8 @@ namespace
         transform->SetPosition(position);
         return transform;
     }
+
+    Vector3 HudPos(const float x, const float y) { return Vector3{x, y, Hud::Depth}; }
 }
 
 struct RunnerGame final : Kek::World::Component
@@ -387,12 +389,30 @@ struct RunnerGame final : Kek::World::Component
         HandleInput();
         UpdatePlayer();
         UpdateWorld();
+        UpdateHud();
 
         player->SetPosition(PlayerPosition());
         player->SetScale(PlayerSize());
 
         const Vector3 cam = camera->GetPosition();
         camera->SetPosition(Vector3{playerX * 0.6f, cam.Y(), cam.Z()});
+    }
+
+    std::unique_ptr<Hud::Digits> scoreDigits, coinDigits;
+    Transform* coinIcon = nullptr;
+
+    static void SetVisible(Transform* transform, const Vector3& pos, const bool on)
+    {
+        transform->SetPosition(on ? pos : Vector3{pos.X(), Hidden, pos.Z()});
+    }
+
+    void UpdateHud()
+    {
+        scoreDigits->Show(Score());
+        coinDigits->Show(coins);
+
+        SetVisible(coinIcon, HudPos(0.32f, 1.5f), true);
+        coinIcon->Rotate(Vector3{0, 0.08f, 0});
     }
 };
 
@@ -405,6 +425,7 @@ int main()
     auto* cameraTransform = cameraNode->AttachComponent<Transform>(Vector3{0, 3.2f, 6.0f});
     cameraTransform->SetRotation(Vector3{-0.35f, 0, 0});
     cameraNode->AttachComponent<Components::Camera>(1.0471976f, 0.1f, 200.0f);
+    Node& cameraRoot = *cameraNode;
     root->AddChild(std::move(cameraNode));
 
     auto lightNode = std::make_unique<Node>();
@@ -467,6 +488,13 @@ int main()
             c.transform = Hud::MakeCube(*root, Vector3{1.0f, 0.85f, 0.1f}, true, Vector3{0.4f, 0.4f, 0.1f});
     }
 
+    const Vector3 white{1, 1, 1};
+    const Vector3 yellow{1.0f, 0.85f, 0.2f};
+
+    runner->scoreDigits = std::make_unique<Hud::Digits>(cameraRoot, white, 5, -0.55f, 1.5f, 0.9f);
+    runner->coinDigits = std::make_unique<Hud::Digits>(cameraRoot, yellow, 3, 0.72f, 1.5f, 0.9f);
+    runner->coinIcon = Hud::MakeCube(cameraRoot, yellow, true, Vector3{0.16f, 0.16f, 0.04f});
+    
     runner->camera = cameraTransform;
     root->AddChild(std::move(game));
 
