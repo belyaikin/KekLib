@@ -130,6 +130,12 @@ struct RunnerGame final : Kek::World::Component
     Transform* magnetAura = nullptr;
     Transform* magnetBar = nullptr;
 
+    static constexpr float ShieldDuration = 6.0f;
+
+    float shieldTimer = 0;
+    Transform* shieldAura = nullptr;
+    Transform* shieldBar = nullptr;
+
     std::vector<Transform*> hearts;
 
     std::unique_ptr<Hud::Digits> bigScore, bigBest;
@@ -260,7 +266,7 @@ struct RunnerGame final : Kek::World::Component
 
         if (Chance() < 0.12f)
         {
-            row.pickupKind = 0; // magnet
+            row.pickupKind = Chance() < 0.5f ? 0 : 1; // 0 = magnet, 1 = shield
             row.pickupPos = Vector3{static_cast<float>(RandomLane()) * LaneWidth, 0.8f, row.z - RowSpacing * 0.5f + 1.0f};
         }
     }
@@ -337,6 +343,10 @@ struct RunnerGame final : Kek::World::Component
         const float m = std::clamp(magnetTimer / MagnetDuration, 0.0f, 1.0f);
         magnetBar->SetScale(Vector3{std::max(0.001f, 0.8f * m), 0.06f, 0.02f});
         SetVisible(magnetBar, HudPos(-0.95f + 0.4f * m, 1.1f), magnetTimer > 0.0f);
+
+        const float s = std::clamp(shieldTimer / ShieldDuration, 0.0f, 1.0f);
+        shieldBar->SetScale(Vector3{std::max(0.001f, 0.8f * s), 0.06f, 0.02f});
+        SetVisible(shieldBar, HudPos(-0.95f + 0.4f * s, 1.0f), shieldTimer > 0.0f);
     }
 
     Transform* body = nullptr;
@@ -399,6 +409,10 @@ struct RunnerGame final : Kek::World::Component
         shadow->SetPosition(Vector3{x, 0.03f, 0});
 
         const bool playing = state == State::Playing;
+
+        SetVisible(shieldAura, Vector3{x, 0.09f, 0}, playing && shieldTimer > 0.0f);
+        shieldAura->SetScale(Vector3{1.4f, 0.04f, 1.4f});
+        shieldAura->SetRotation(Vector3{0, runPhase * 0.2f, 0});
 
         SetVisible(magnetAura, Vector3{x, 0.05f, 0}, playing && magnetTimer > 0.0f);
         magnetAura->SetScale(Vector3{2.0f, 0.04f, 2.0f});
@@ -496,6 +510,7 @@ struct RunnerGame final : Kek::World::Component
                 if (Overlaps(playerPos, playerSize, row.pickupPos, pickupSize))
                 {
                     if (row.pickupKind == 0) magnetTimer = MagnetDuration;
+                    else shieldTimer = ShieldDuration;
 
                     pickup->SetPosition(Vector3{0, Hidden, 0});
                     row.pickupKind = -1;
@@ -559,13 +574,15 @@ struct RunnerGame final : Kek::World::Component
             SetVisible(hearts[i], HudPos(-0.9f + 0.2f * static_cast<float>(i), 1.27f), false);
 
         SetVisible(magnetBar, HudPos(-0.95f, 1.1f), false);
+
+        SetVisible(shieldBar, HudPos(-0.95f, 1.0f), false);
     }
 
     void EnterMenu()
     {
         state = State::Menu;
         stateTimer = 0;
-        invulnTimer = magnetTimer = 0;
+        invulnTimer = magnetTimer = shieldTimer = 0;
         speed = 6.0f;
         HideHud();
         ShowOverlay();
@@ -587,7 +604,7 @@ struct RunnerGame final : Kek::World::Component
         coins = 0;
 
         lives = MaxLives;
-        invulnTimer = magnetTimer = shakeTimer = 0;
+        invulnTimer = magnetTimer = shieldTimer = shakeTimer = 0;
 
         for (int i = 0; i < static_cast<int>(rows.size()); ++i)
         {
@@ -635,6 +652,7 @@ struct RunnerGame final : Kek::World::Component
         {
             state = State::Paused;
             stateTimer = 0;
+            shieldTimer = std::max(0.0f, shieldTimer - Dt);
             ShowOverlay();
             return;
         }
@@ -736,6 +754,14 @@ struct RunnerGame final : Kek::World::Component
 
     void OnHit()
     {
+        if (shieldTimer > 0.0f) // the shield absorbs one hit
+        {
+            shieldTimer = 0;
+            invulnTimer = 1.5f;
+            shakeTimer = 0.2f;
+            return;
+        }
+
         --lives;
         invulnTimer = 2.0f;
         shakeTimer = 0.4f;
@@ -807,6 +833,7 @@ int main()
     runner->head = Hud::MakeCube(*root, Vector3{1.0f, 0.8f, 0.65f}, false);
     runner->shadow = Hud::MakeCube(*root, Vector3{0.05f, 0.05f, 0.07f}, true);
     runner->magnetAura = Hud::MakeCube(*root, Vector3{0.3f, 0.9f, 1.0f}, true);
+    runner->shieldAura = Hud::MakeCube(*root, Vector3{0.3f, 1.0f, 0.5f}, true);
 
     // Object pool: rows of obstacles and coins that get recycled as they pass the camera
     runner->rows.resize(RowCount);
@@ -843,6 +870,7 @@ int main()
     runner->labelScore = std::make_unique<Hud::Text>(cameraRoot, lightBlue, 50);
     runner->labelBest = std::make_unique<Hud::Text>(cameraRoot, lightBlue, 50);
     runner->magnetBar = Hud::MakeCube(cameraRoot, Vector3{0.3f, 0.9f, 1.0f}, true, Vector3{0.8f, 0.06f, 0.02f});
+    runner->shieldBar = Hud::MakeCube(cameraRoot, Vector3{0.3f, 1.0f, 0.4f}, true, Vector3{0.8f, 0.06f, 0.02f});
 
     for (int i = 0; i < RunnerGame::MaxLives; ++i)
         runner->hearts.push_back(Hud::MakeCube(cameraRoot, Vector3{1.0f, 0.25f, 0.3f}, true, Vector3{0.14f, 0.14f, 0.03f}));
