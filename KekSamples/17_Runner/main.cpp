@@ -51,6 +51,9 @@ namespace
     constexpr float DecorRecycleZ = 14.0f;
     constexpr int BuildingsPerSide = 14;
 
+    constexpr float RowSpacing = 16.0f;
+    constexpr float RecycleZ = 10.0f;
+
 
     // AABB overlap between two boxes given by center and size
     bool Overlaps(const Vector3& aPos, const Vector3& aSize, const Vector3& bPos, const Vector3& bSize)
@@ -135,6 +138,11 @@ struct RunnerGame final : Kek::World::Component
     float shieldTimer = 0;
     Transform* shieldAura = nullptr;
     Transform* shieldBar = nullptr;
+
+    int lastSafe = 0;
+    bool lastNeedsAction = false;
+
+    int RandInt(const int lo, const int hi) { return std::uniform_int_distribution<int>(lo, hi)(rng); }
 
     std::vector<Transform*> hearts;
 
@@ -238,36 +246,65 @@ struct RunnerGame final : Kek::World::Component
     }
 
     // Fills a row with a fresh random layout: 1-2 obstacles (never all three lanes) and a coin
-    void RollRow(Row& row)
+    void RollRow(Row& row, const bool empty)
     {
         ClearRow(row);
 
-        const int laneA = RandomLane();
-        const float r = Chance();
-        row.obstacles[0].kind = r < 0.4f ? Low : (r < 0.7f ? Tall : Overhead);
-        row.obstacles[0].lane = laneA;
+        const int safe = std::clamp(lastSafe + RandInt(-1, 1), -1, 1);
+        int safeKind = -1; // obstacle placed in the safe lane that needs a jump or a slide
+        int slot = 0;
 
-        if (Chance() < 0.4f)
+        if (!empty)
         {
-            int laneB = RandomLane();
-            if (laneB == laneA) laneB = laneA == 1 ? -1 : laneA + 1;
-            row.obstacles[1].kind = Chance() < 0.5f ? Low : Overhead;
-            row.obstacles[1].lane = laneB;
+            for (int lane = -1; lane <= 1; ++lane)
+            {
+                if (lane == safe) continue;
+
+                const float r = Chance();
+                if (r < 0.15f) continue; // empty lane
+
+                row.obstacles[slot].kind = r < 0.40f ? Train : (r < 0.60f ? Tall : (r < 0.80f ? Low : Overhead));
+                row.obstacles[slot].lane = lane;
+                ++slot;
+            }
+
+            // Sometimes the safe lane has a jump or slide obstacle, but never in two rows in a row.
+            if (!lastNeedsAction && Chance() < 0.3f)
+            {
+                safeKind = Chance() < 0.5f ? Low : Overhead;
+                row.obstacles[slot].kind = safeKind;
+                row.obstacles[slot].lane = safe;
+            }
         }
 
-        const float x = static_cast<float>(RandomLane()) * LaneWidth;
+        lastSafe = safe;
+        lastNeedsAction = safeKind >= 0;
+
+        // A line of coins in the safe lane (an arc over low barriers).
+        const float x = static_cast<float>(safe) * LaneWidth;
         for (int i = 0; i < 5; ++i)
         {
+            if (safeKind == Overhead && i == 2) continue;
+
+            const float offset = -4.0f + 2.0f * static_cast<float>(i);
+            float y = 0.7f;
+            if (safeKind == Low)
+            {
+                const float k = offset / 4.0f;
+                y = 0.7f + 1.0f * (1.0f - k * k);
+            }
+
             Coin& c = row.coins[i];
             c.active = true;
             c.pulled = false;
-            c.pos = Vector3{x, 0.7f, row.z - RowSpacing * 0.5f + (-4.0f + 2.0f * static_cast<float>(i))};
+            c.pos = Vector3{x, y, row.z + offset};
         }
 
-        if (Chance() < 0.12f)
+        // Power-up between this row and the next one.
+        if (!empty && Chance() < 0.12f)
         {
-            row.pickupKind = Chance() < 0.5f ? 0 : 1; // 0 = magnet, 1 = shield
-            row.pickupPos = Vector3{static_cast<float>(RandomLane()) * LaneWidth, 0.8f, row.z - RowSpacing * 0.5f + 1.0f};
+            row.pickupKind = RandInt(0, 1); // 0 = magnet, 1 = shield
+            row.pickupPos = Vector3{static_cast<float>(RandInt(-1, 1)) * LaneWidth, 0.8f, row.z - RowSpacing * 0.5f};
         }
     }
 
@@ -461,7 +498,7 @@ struct RunnerGame final : Kek::World::Component
             if (row.z > RecycleZ)
             {
                 row.z -= TrackLength;
-                RollRow(row);
+                RollRow(row, false);
             }
 
             for (Obstacle& o : row.obstacles)
@@ -606,10 +643,13 @@ struct RunnerGame final : Kek::World::Component
         lives = MaxLives;
         invulnTimer = magnetTimer = shieldTimer = shakeTimer = 0;
 
+        lastSafe = 0;
+        lastNeedsAction = false;
+
         for (int i = 0; i < static_cast<int>(rows.size()); ++i)
         {
-            rows[i].z = -25.0f - static_cast<float>(i) * RowSpacing;
-            RollRow(rows[i]);
+            rows[i].z = -30.0f - static_cast<float>(i) * RowSpacing;
+            RollRow(rows[i], i < 2);
         }
 
         HideOverlay();
