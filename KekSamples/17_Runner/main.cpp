@@ -124,6 +124,12 @@ struct RunnerGame final : Kek::World::Component
     float shakeTimer = 0;
     float camX = 0;
 
+    static constexpr float MagnetDuration = 8.0f;
+
+    float magnetTimer = 0;
+    Transform* magnetAura = nullptr;
+    Transform* magnetBar = nullptr;
+
     std::vector<Transform*> hearts;
 
     std::unique_ptr<Hud::Digits> bigScore, bigBest;
@@ -145,6 +151,7 @@ struct RunnerGame final : Kek::World::Component
         Transform* transform = nullptr;
         Vector3 pos{0, Hidden, 0};
         bool active = false;
+        bool pulled = false;
     };
 
     struct Row
@@ -152,6 +159,9 @@ struct RunnerGame final : Kek::World::Component
         float z = 0;
         Obstacle obstacles[3];
         Coin coins[5];
+        Transform* pickups[2]{};
+        int pickupKind = -1;
+        Vector3 pickupPos{0, Hidden, 0};
     };
 
     struct Building
@@ -224,7 +234,7 @@ struct RunnerGame final : Kek::World::Component
     // Fills a row with a fresh random layout: 1-2 obstacles (never all three lanes) and a coin
     void RollRow(Row& row)
     {
-        for (Obstacle& o : row.obstacles) HideObstacle(o);
+        ClearRow(row);
 
         const int laneA = RandomLane();
         const float r = Chance();
@@ -244,7 +254,14 @@ struct RunnerGame final : Kek::World::Component
         {
             Coin& c = row.coins[i];
             c.active = true;
+            c.pulled = false;
             c.pos = Vector3{x, 0.7f, row.z - RowSpacing * 0.5f + (-4.0f + 2.0f * static_cast<float>(i))};
+        }
+
+        if (Chance() < 0.12f)
+        {
+            row.pickupKind = 0; // magnet
+            row.pickupPos = Vector3{static_cast<float>(RandomLane()) * LaneWidth, 0.8f, row.z - RowSpacing * 0.5f + 1.0f};
         }
     }
 
@@ -316,9 +333,13 @@ struct RunnerGame final : Kek::World::Component
 
         for (std::size_t i = 0; i < hearts.size(); ++i)
             SetVisible(hearts[i], HudPos(-0.9f + 0.2f * static_cast<float>(i), 1.27f), static_cast<int>(i) < lives);
+
+        const float m = std::clamp(magnetTimer / MagnetDuration, 0.0f, 1.0f);
+        magnetBar->SetScale(Vector3{std::max(0.001f, 0.8f * m), 0.06f, 0.02f});
+        SetVisible(magnetBar, HudPos(-0.95f + 0.4f * m, 1.1f), magnetTimer > 0.0f);
     }
 
-        Transform* body = nullptr;
+    Transform* body = nullptr;
     Transform* head = nullptr;
     Transform* legL = nullptr;
     Transform* legR = nullptr;
@@ -376,6 +397,12 @@ struct RunnerGame final : Kek::World::Component
         const float k = 1.0f / (1.0f + feet * 0.6f);
         shadow->SetScale(Vector3{0.9f * k, 0.02f, 0.7f * k});
         shadow->SetPosition(Vector3{x, 0.03f, 0});
+
+        const bool playing = state == State::Playing;
+
+        SetVisible(magnetAura, Vector3{x, 0.05f, 0}, playing && magnetTimer > 0.0f);
+        magnetAura->SetScale(Vector3{2.0f, 0.04f, 2.0f});
+        magnetAura->SetRotation(Vector3{0, -runPhase * 0.2f, 0});
     }
 
     void UpdateCamera()
@@ -412,6 +439,7 @@ struct RunnerGame final : Kek::World::Component
         const Vector3 playerSize = PlayerSize();
         const Vector3 hitSize{playerSize.X() * 0.75f, playerSize.Y() - 0.1f, playerSize.Z() * 0.8f};
         const Vector3 coinSize{0.5f, 0.5f, 0.5f};
+        const Vector3 pickupSize{0.7f, 0.7f, 0.7f};
 
         for (Row& row : rows)
         {
@@ -438,15 +466,39 @@ struct RunnerGame final : Kek::World::Component
             {
                 if (!c.active) continue;
 
-                c.pos = Vector3{c.pos.X(), c.pos.Y(), c.pos.Z() + step};
+                if (magnetTimer > 0.0f && !c.pulled &&
+                    std::abs(c.pos.Z()) < 9.0f && std::abs(c.pos.X() - playerX) < LaneWidth * 1.6f)
+                    c.pulled = true;
+
+                if (c.pulled) c.pos = c.pos + (playerPos - c.pos) * 0.3f;
+                else c.pos = Vector3{c.pos.X(), c.pos.Y(), c.pos.Z() + step};
+
                 c.transform->SetPosition(c.pos);
                 c.transform->Rotate(Vector3{0, 0.12f, 0});
 
                 if (Overlaps(playerPos, playerSize, c.pos, coinSize))
                 {
                     c.active = false;
+                    c.pulled = false;
                     c.transform->SetPosition(Vector3{0, Hidden, 0});
                     ++coins;
+                }
+            }
+
+            if (row.pickupKind >= 0)
+            {
+                row.pickupPos = Vector3{row.pickupPos.X(), row.pickupPos.Y(), row.pickupPos.Z() + step};
+
+                Transform* pickup = row.pickups[row.pickupKind];
+                pickup->SetPosition(row.pickupPos);
+                pickup->Rotate(Vector3{0.05f, 0.1f, 0});
+
+                if (Overlaps(playerPos, playerSize, row.pickupPos, pickupSize))
+                {
+                    if (row.pickupKind == 0) magnetTimer = MagnetDuration;
+
+                    pickup->SetPosition(Vector3{0, Hidden, 0});
+                    row.pickupKind = -1;
                 }
             }
         }
@@ -505,13 +557,15 @@ struct RunnerGame final : Kek::World::Component
 
         for (std::size_t i = 0; i < hearts.size(); ++i)
             SetVisible(hearts[i], HudPos(-0.9f + 0.2f * static_cast<float>(i), 1.27f), false);
+
+        SetVisible(magnetBar, HudPos(-0.95f, 1.1f), false);
     }
 
     void EnterMenu()
     {
         state = State::Menu;
         stateTimer = 0;
-        invulnTimer = 0;
+        invulnTimer = magnetTimer = 0;
         speed = 6.0f;
         HideHud();
         ShowOverlay();
@@ -533,7 +587,7 @@ struct RunnerGame final : Kek::World::Component
         coins = 0;
 
         lives = MaxLives;
-        invulnTimer = shakeTimer = 0;
+        invulnTimer = magnetTimer = shakeTimer = 0;
 
         for (int i = 0; i < static_cast<int>(rows.size()); ++i)
         {
@@ -596,6 +650,7 @@ struct RunnerGame final : Kek::World::Component
         UpdateRows(step);
 
         invulnTimer = std::max(0.0f, invulnTimer - Dt);
+        magnetTimer = std::max(0.0f, magnetTimer - Dt);
         if (state == State::Playing) UpdateHud();
 
         AnimatePlayer();
@@ -634,6 +689,21 @@ struct RunnerGame final : Kek::World::Component
 
         std::cout << "A/D or arrows - lane, Space/W/Up - jump, S/Down - slide, P/Esc - pause" << std::endl;
         EnterMenu();
+    }
+
+    void ClearRow(Row& row)
+    {
+        for (Obstacle& o : row.obstacles) HideObstacle(o);
+
+        for (Coin& c : row.coins)
+        {
+            c.active = false;
+            c.pulled = false;
+            c.transform->SetPosition(Vector3{0, Hidden, 0});
+        }
+
+        for (Transform* pickup : row.pickups) pickup->SetPosition(Vector3{0, Hidden, 0});
+        row.pickupKind = -1;
     }
 
     void Tick() override
@@ -736,6 +806,7 @@ int main()
     runner->body = Hud::MakeCube(*root, Vector3{0.25f, 0.6f, 1.0f}, false);
     runner->head = Hud::MakeCube(*root, Vector3{1.0f, 0.8f, 0.65f}, false);
     runner->shadow = Hud::MakeCube(*root, Vector3{0.05f, 0.05f, 0.07f}, true);
+    runner->magnetAura = Hud::MakeCube(*root, Vector3{0.3f, 0.9f, 1.0f}, true);
 
     // Object pool: rows of obstacles and coins that get recycled as they pass the camera
     runner->rows.resize(RowCount);
@@ -749,6 +820,9 @@ int main()
 
         for (auto& c : row.coins)
             c.transform = Hud::MakeCube(*root, Vector3{1.0f, 0.85f, 0.1f}, true, Vector3{0.4f, 0.4f, 0.1f});
+
+        row.pickups[0] = Hud::MakeCube(*root, Vector3{0.3f, 0.9f, 1.0f}, true, Vector3{0.5f, 0.5f, 0.5f});
+        row.pickups[1] = Hud::MakeCube(*root, Vector3{0.3f, 1.0f, 0.4f}, true, Vector3{0.5f, 0.5f, 0.5f});
     }
 
     const Vector3 white{1, 1, 1};
@@ -768,6 +842,7 @@ int main()
     runner->prompt = std::make_unique<Hud::Text>(cameraRoot, white, 100);
     runner->labelScore = std::make_unique<Hud::Text>(cameraRoot, lightBlue, 50);
     runner->labelBest = std::make_unique<Hud::Text>(cameraRoot, lightBlue, 50);
+    runner->magnetBar = Hud::MakeCube(cameraRoot, Vector3{0.3f, 0.9f, 1.0f}, true, Vector3{0.8f, 0.06f, 0.02f});
 
     for (int i = 0; i < RunnerGame::MaxLives; ++i)
         runner->hearts.push_back(Hud::MakeCube(cameraRoot, Vector3{1.0f, 0.25f, 0.3f}, true, Vector3{0.14f, 0.14f, 0.03f}));
