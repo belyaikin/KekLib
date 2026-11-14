@@ -109,4 +109,11 @@ namespace Kek::Graphics::OpenGL
         glGenerateMipmap(GL_TEXTURE_2D);
     }
 
+    void Context::EnableBackFaceCulling()
+    {
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glFrontFace(GL_CCW);
+    }
+
 }

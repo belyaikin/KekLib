@@ -14,6 +14,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <exception>
 
 #include "KekGraphics/Hud.hpp"
 #include "KekApplication/Application.hpp"
@@ -23,6 +24,8 @@
 #include "KekInput/Input.hpp"
 #include "KekWorld/Node.hpp"
 #include "KekWorld/Transform.hpp"
+#include "KekGraphics/RenderRegistry.hpp"
+#include "KekMath/Matrix4.hpp"
 
 using namespace Kek::Graphics;
 using Hud::Hidden;
@@ -40,9 +43,9 @@ namespace
     constexpr float SlideHeight = 0.6f;
 
     constexpr int RowCount = 8;
-    constexpr float RowSpacing = 10.0f;
+    constexpr float RowSpacing = 16.0f;
     constexpr float TrackLength = RowCount * RowSpacing;
-    constexpr float RecycleZ = 8.0f;
+    constexpr float RecycleZ = 10.0f;
 
     constexpr int MarkerCount = 20;
     constexpr float MarkerSpacing = TrackLength / MarkerCount;
@@ -50,9 +53,6 @@ namespace
     constexpr float DecorLength = 140.0f;
     constexpr float DecorRecycleZ = 14.0f;
     constexpr int BuildingsPerSide = 14;
-
-    constexpr float RowSpacing = 16.0f;
-    constexpr float RecycleZ = 10.0f;
 
 
     // AABB overlap between two boxes given by center and size
@@ -108,6 +108,27 @@ namespace
     }
 
     Vector3 HudPos(const float x, const float y) { return Vector3{x, y, Hud::Depth}; }
+
+    constexpr const char* TopicTitle = "KEKLIB";
+    constexpr const char* TeamName = "TEAM NAME";
+
+    constexpr float FlySpeed = 0.2f;
+    constexpr float FlyTurnSpeed = 0.025f;
+
+    struct HelpLine { const char* text; float pixel; float x; float y; };
+
+    constexpr HelpLine HelpLines[] = {
+        {"HELP",               0.050f, -0.375f,  1.35f},
+        {"A D  LANE",          0.025f, -0.95f,   0.95f},
+        {"SPACE  JUMP",        0.025f, -0.95f,   0.75f},
+        {"S  SLIDE",           0.025f, -0.95f,   0.55f},
+        {"P  PAUSE",           0.025f, -0.95f,   0.35f},
+        {"L  LIGHT ON OFF",    0.025f, -0.95f,   0.15f},
+        {"Q E R F Z X  LIGHT", 0.025f, -0.95f,  -0.05f},
+        {"C  FLY CAMERA",      0.025f, -0.95f,  -0.25f},
+        {"WASD ARROWS  FLY",   0.025f, -0.95f,  -0.45f},
+        {"H  CLOSE",           0.025f, -0.95f,  -0.65f},
+    };
 }
 
 struct RunnerGame final : Kek::World::Component
@@ -565,6 +586,8 @@ struct RunnerGame final : Kek::World::Component
         labelBest->Hide();
         bigScore->Hide();
         bigBest->Hide();
+        topicText->Hide();
+        teamText->Hide();
     }
 
     void ShowOverlay()
@@ -575,6 +598,8 @@ struct RunnerGame final : Kek::World::Component
         {
             case State::Menu:
                 title->Show("RUNNER", 0.0f, 0.8f, 0.06f);
+                topicText->Show(TopicTitle, 0.0f, 0.45f, 0.03f);
+                teamText->Show(TeamName, 0.0f, 0.25f, 0.025f);
                 labelBest->Show("BEST", -0.65f, -0.4f, 0.03f);
                 bigBest->Show(best);
                 break;
@@ -692,7 +717,6 @@ struct RunnerGame final : Kek::World::Component
         {
             state = State::Paused;
             stateTimer = 0;
-            shieldTimer = std::max(0.0f, shieldTimer - Dt);
             ShowOverlay();
             return;
         }
@@ -709,6 +733,8 @@ struct RunnerGame final : Kek::World::Component
 
         invulnTimer = std::max(0.0f, invulnTimer - Dt);
         magnetTimer = std::max(0.0f, magnetTimer - Dt);
+        shieldTimer = std::max(0.0f, shieldTimer - Dt);
+
         if (state == State::Playing) UpdateHud();
 
         AnimatePlayer();
@@ -768,6 +794,11 @@ struct RunnerGame final : Kek::World::Component
     {
         stateTimer += Dt;
 
+        HandleDebugKeys();
+
+        if (showHelp) return;                         // help screen freezes the game
+        if (flyCam) { UpdateFlyCamera(); return; }    // fly camera freezes gameplay
+
         switch (state)
         {
             case State::Menu: TickMenu(); break;
@@ -809,9 +840,133 @@ struct RunnerGame final : Kek::World::Component
 
         if (lives <= 0) EndRun();
     }
+
+    Transform* light = nullptr;
+    Transform* lightMarker = nullptr;
+
+    bool flyCam = false;
+    Vector3 savedCamPos{0, 3.2f, 6.0f};
+    Vector3 savedCamRot{-0.35f, 0, 0};
+
+    bool showHelp = false;
+    Transform* helpPanel = nullptr;
+    std::vector<std::unique_ptr<Hud::Text>> helpTexts;
+    std::unique_ptr<Hud::Text> lightStatus, camStatus, helpHint, topicText, teamText;
+
+    static void ShowLeft(Hud::Text& text, const std::string& s, const float left, const float y, const float pixel)
+    {
+        const float width = (static_cast<float>(s.size()) * 4.0f - 1.0f) * pixel;
+        text.Show(s, left + width * 0.5f, y, pixel);
+    }
+
+    void UpdateStatus()
+    {
+        lightStatus->Show(RenderRegistry::lightingEnabled ? "LIGHT ON" : "LIGHT OFF", -0.62f, -1.5f, 0.02f);
+        camStatus->Show(flyCam ? "CAM FLY" : "CAM GAME", 0.0f, -1.5f, 0.02f);
+        helpHint->Show("H HELP", 0.7f, -1.5f, 0.02f);
+    }
+
+    void SetHelp(const bool on)
+    {
+        showHelp = on;
+        const Vector3 panelPos{0, 0, Hud::Depth - 0.05f};
+
+        if (on)
+        {
+            HideOverlay();
+            HideHud();
+            SetVisible(helpPanel, panelPos, true);
+
+            for (std::size_t i = 0; i < helpTexts.size(); ++i)
+                ShowLeft(*helpTexts[i], HelpLines[i].text, HelpLines[i].x, HelpLines[i].y, HelpLines[i].pixel);
+
+            topicText->Show(TopicTitle, 0.0f, -0.95f, 0.03f);
+            teamText->Show(TeamName, 0.0f, -1.2f, 0.025f);
+        }
+        else
+        {
+            SetVisible(helpPanel, panelPos, false);
+            for (auto& text : helpTexts) text->Hide();
+            topicText->Hide();
+            teamText->Hide();
+
+            if (state != State::Playing) ShowOverlay();
+        }
+    }
+
+    void UpdateLight()
+    {
+        Vector3 move{0, 0, 0};
+        if (Kek::Input::GetKey(Key::Q)) move += Vector3{-1, 0, 0};
+        if (Kek::Input::GetKey(Key::E)) move += Vector3{1, 0, 0};
+        if (Kek::Input::GetKey(Key::R)) move += Vector3{0, 1, 0};
+        if (Kek::Input::GetKey(Key::F)) move += Vector3{0, -1, 0};
+        if (Kek::Input::GetKey(Key::Z)) move += Vector3{0, 0, -1};
+        if (Kek::Input::GetKey(Key::X)) move += Vector3{0, 0, 1};
+
+        Vector3 p = light->GetPosition() + move * 0.2f;
+        p = Vector3{std::clamp(p.X(), -12.0f, 12.0f), std::clamp(p.Y(), 1.0f, 16.0f), std::clamp(p.Z(), -30.0f, 12.0f)};
+
+        light->SetPosition(p);
+        lightMarker->SetPosition(p); // small unlit cube so you can see where the light is
+    }
+
+    void ToggleFlyCam()
+    {
+        flyCam = !flyCam;
+
+        if (flyCam)
+        {
+            savedCamPos = camera->GetPosition();
+            savedCamRot = camera->GetRotation();
+        }
+        else
+        {
+            camera->SetRotation(savedCamRot);
+            camera->SetPosition(savedCamPos);
+        }
+    }
+
+    // W/S forward/back, A/D strafe, Space/LeftShift up/down, arrows look around.
+    void UpdateFlyCamera()
+    {
+        Vector3 rotation = camera->GetRotation();
+        if (Kek::Input::GetKey(Key::Left)) rotation += Vector3{0, FlyTurnSpeed, 0};
+        if (Kek::Input::GetKey(Key::Right)) rotation += Vector3{0, -FlyTurnSpeed, 0};
+        if (Kek::Input::GetKey(Key::Up)) rotation += Vector3{FlyTurnSpeed, 0, 0};
+        if (Kek::Input::GetKey(Key::Down)) rotation += Vector3{-FlyTurnSpeed, 0, 0};
+
+        rotation = Vector3{std::clamp(rotation.X(), -1.5f, 1.5f), rotation.Y(), rotation.Z()};
+        camera->SetRotation(rotation);
+
+        const Kek::Math::Matrix4 orientation = Kek::Math::Matrix4::Rotation(rotation);
+        const Vector3 forward = orientation.TransformPoint(Vector3{0, 0, -1});
+        const Vector3 right = orientation.TransformPoint(Vector3{1, 0, 0});
+
+        Vector3 move{0, 0, 0};
+        if (Kek::Input::GetKey(Key::W)) move += forward;
+        if (Kek::Input::GetKey(Key::S)) move += -forward;
+        if (Kek::Input::GetKey(Key::D)) move += right;
+        if (Kek::Input::GetKey(Key::A)) move += -right;
+        if (Kek::Input::GetKey(Key::Space)) move += Vector3::up;
+        if (Kek::Input::GetKey(Key::LeftShift)) move += Vector3::down;
+
+        camera->Move(move * FlySpeed);
+    }
+
+    void HandleDebugKeys()
+    {
+        if (Pressed(Key::L)) RenderRegistry::lightingEnabled = !RenderRegistry::lightingEnabled;
+        if (Pressed(Key::C)) ToggleFlyCam();
+        if (Pressed(Key::H) || Pressed(Key::F1)) SetHelp(!showHelp);
+        else if (showHelp && Pressed(Key::Escape)) SetHelp(false);
+
+        UpdateLight();
+        UpdateStatus();
+    }
 };
 
-int main()
+int RunGame()
 {
     auto root = std::make_unique<Node>();
 
@@ -824,7 +979,7 @@ int main()
     root->AddChild(std::move(cameraNode));
 
     auto lightNode = std::make_unique<Node>();
-    lightNode->AttachComponent<Transform>(Vector3{0, 6.0f, -3.0f});
+    auto* lightTransform = lightNode->AttachComponent<Transform>(Vector3{0, 6.0f, -3.0f});
     lightNode->AttachComponent<Components::Light>(Vector3{1, 1, 1}, 1.2f);
     root->AddChild(std::move(lightNode));
 
@@ -909,6 +1064,20 @@ int main()
     runner->prompt = std::make_unique<Hud::Text>(cameraRoot, white, 100);
     runner->labelScore = std::make_unique<Hud::Text>(cameraRoot, lightBlue, 50);
     runner->labelBest = std::make_unique<Hud::Text>(cameraRoot, lightBlue, 50);
+    runner->light = lightTransform;
+    runner->lightMarker = Hud::MakeCube(*root, Vector3{1.0f, 1.0f, 0.6f}, true, Vector3{0.3f, 0.3f, 0.3f});
+
+    runner->topicText = std::make_unique<Hud::Text>(cameraRoot, lightBlue, Hud::Text::PixelCount(TopicTitle));
+    runner->teamText = std::make_unique<Hud::Text>(cameraRoot, lightBlue, Hud::Text::PixelCount(TeamName));
+    runner->lightStatus = std::make_unique<Hud::Text>(cameraRoot, white, Hud::Text::PixelCount("LIGHT OFF"));
+    runner->camStatus = std::make_unique<Hud::Text>(cameraRoot, white,
+        std::max(Hud::Text::PixelCount("CAM GAME"), Hud::Text::PixelCount("CAM FLY")));
+    runner->helpHint = std::make_unique<Hud::Text>(cameraRoot, white, Hud::Text::PixelCount("H HELP"));
+
+    runner->helpPanel = Hud::MakeCube(cameraRoot, Vector3{0.03f, 0.04f, 0.1f}, true, Vector3{2.4f, 4.0f, 0.01f});
+    for (const HelpLine& line : HelpLines)
+        runner->helpTexts.push_back(std::make_unique<Hud::Text>(cameraRoot, white, Hud::Text::PixelCount(line.text)));
+
     runner->magnetBar = Hud::MakeCube(cameraRoot, Vector3{0.3f, 0.9f, 1.0f}, true, Vector3{0.8f, 0.06f, 0.02f});
     runner->shieldBar = Hud::MakeCube(cameraRoot, Vector3{0.3f, 1.0f, 0.4f}, true, Vector3{0.8f, 0.06f, 0.02f});
 
@@ -928,4 +1097,22 @@ int main()
     app.SetTickRate(60);
     app.Run();
     return 0;
+}
+
+int main()
+{
+    try
+    {
+        return RunGame();
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << "FATAL ERROR: " << e.what() << std::endl;
+    }
+    catch (...)
+    {
+        std::cerr << "FATAL ERROR: unknown exception" << std::endl;
+    }
+
+    return 1;
 }

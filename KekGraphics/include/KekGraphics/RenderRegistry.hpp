@@ -22,6 +22,7 @@ namespace Kek::Graphics
         inline static std::vector<Entry> items;
         inline static std::vector<const Components::Camera*> cameras;
         inline static std::vector<const Components::Light*> lights;
+        inline static bool lightingEnabled = true;
 
         static void Register(const void* owner, const RenderItem& item)
         {

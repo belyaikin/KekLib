@@ -11,6 +11,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <cctype>
 
 #include "KekGraphics/Components/MeshDisplay.hpp"
 #include "KekMath/Vector3.hpp"
@@ -146,26 +147,49 @@ namespace Hud
 
         static const Rows* Glyph(const char c)
         {
-            static const std::map<char, Rows> glyphs = {
+                        static const std::map<char, Rows> glyphs = {
                 {'A', Rows{".X.", "X.X", "XXX", "X.X", "X.X"}},
                 {'B', Rows{"XX.", "X.X", "XX.", "X.X", "XX."}},
                 {'C', Rows{".XX", "X..", "X..", "X..", ".XX"}},
                 {'D', Rows{"XX.", "X.X", "X.X", "X.X", "XX."}},
                 {'E', Rows{"XXX", "X..", "XX.", "X..", "XXX"}},
+                {'F', Rows{"XXX", "X..", "XX.", "X..", "X.."}},
                 {'G', Rows{".XX", "X..", "X.X", "X.X", ".XX"}},
+                {'H', Rows{"X.X", "X.X", "XXX", "X.X", "X.X"}},
+                {'I', Rows{"XXX", ".X.", ".X.", ".X.", "XXX"}},
+                {'J', Rows{"..X", "..X", "..X", "X.X", "XXX"}},
+                {'K', Rows{"X.X", "X.X", "XX.", "X.X", "X.X"}},
+                {'L', Rows{"X..", "X..", "X..", "X..", "XXX"}},
                 {'M', Rows{"X.X", "XXX", "XXX", "X.X", "X.X"}},
                 {'N', Rows{"XX.", "X.X", "X.X", "X.X", "X.X"}},
                 {'O', Rows{"XXX", "X.X", "X.X", "X.X", "XXX"}},
                 {'P', Rows{"XX.", "X.X", "XX.", "X..", "X.."}},
+                {'Q', Rows{"XXX", "X.X", "X.X", "XXX", "..X"}},
                 {'R', Rows{"XX.", "X.X", "XX.", "X.X", "X.X"}},
                 {'S', Rows{".XX", "X..", ".X.", "..X", "XX."}},
                 {'T', Rows{"XXX", ".X.", ".X.", ".X.", ".X."}},
                 {'U', Rows{"X.X", "X.X", "X.X", "X.X", "XXX"}},
                 {'V', Rows{"X.X", "X.X", "X.X", "X.X", ".X."}},
                 {'W', Rows{"X.X", "X.X", "XXX", "XXX", "X.X"}},
+                {'X', Rows{"X.X", "X.X", ".X.", "X.X", "X.X"}},
+                {'Y', Rows{"X.X", "X.X", ".X.", ".X.", ".X."}},
+                {'Z', Rows{"XXX", "..X", ".X.", "X..", "XXX"}},
+                {'0', Rows{"XXX", "X.X", "X.X", "X.X", "XXX"}},
+                {'1', Rows{".X.", "XX.", ".X.", ".X.", "XXX"}},
+                {'2', Rows{"XX.", "..X", ".X.", "X..", "XXX"}},
+                {'3', Rows{"XX.", "..X", ".X.", "..X", "XX."}},
+                {'4', Rows{"X.X", "X.X", "XXX", "..X", "..X"}},
+                {'5', Rows{"XXX", "X..", "XX.", "..X", "XX."}},
+                {'6', Rows{".XX", "X..", "XXX", "X.X", "XXX"}},
+                {'7', Rows{"XXX", "..X", ".X.", ".X.", ".X."}},
+                {'8', Rows{"XXX", "X.X", "XXX", "X.X", "XXX"}},
+                {'9', Rows{"XXX", "X.X", "XXX", "..X", "XX."}},
+                {'-', Rows{"...", "...", "XXX", "...", "..."}},
+                {':', Rows{"...", ".X.", "...", ".X.", "..."}},
+                {'.', Rows{"...", "...", "...", "...", ".X."}},
             };
 
-            const auto it = glyphs.find(c);
+            const auto it = glyphs.find(static_cast<char>(std::toupper(static_cast<unsigned char>(c))));
             return it == glyphs.end() ? nullptr : &it->second;
         }
 
@@ -219,6 +243,21 @@ namespace Hud
             visible = false;
             for (Transform* pixel : pixels)
                 pixel->SetPosition(Vector3{0, Hidden, Depth});
+        }
+
+        static int PixelCount(const std::string& text)
+        {
+            int count = 0;
+            for (const char c : text)
+            {
+                const Rows* glyph = Glyph(c);
+                if (glyph == nullptr) continue;
+
+                for (const char* row : *glyph)
+                    for (int col = 0; col < 3; ++col)
+                        if (row[col] == 'X') ++count;
+            }
+            return count;
         }
     };
 }
