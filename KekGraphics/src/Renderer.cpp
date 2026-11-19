@@ -3,6 +3,7 @@
 //
 
 #include "KekGraphics/Renderer.hpp"
+#include <chrono>
 
 #include "KekGraphics/Material.hpp"
 #include "KekGraphics/RenderRegistry.hpp"
@@ -23,6 +24,7 @@ namespace Kek::Graphics
             Math::Matrix4 projection = Math::Matrix4::Identity();
             Math::Vector3 viewPosition{0, 0, 0};
             const Components::Light* light = nullptr;
+            float time = 0.0f;
         };
         // Uniforms a program does not declare are ignored by OpenGL(location -1),
         // so an unlit shader can simply skip the light uniforms.
@@ -31,6 +33,8 @@ namespace Kek::Graphics
             program.SetMatrix4("uView", frame.view);
             program.SetMatrix4("uProjection", frame.projection);
             program.SetVector3("uViewPos", frame.viewPosition);
+            program.SetVector3("uViewPos", frame.viewPosition);
+            program.SetFloat("uTime", frame.time);
             program.SetBool("uLightingEnabled", frame.light != nullptr && RenderRegistry::lightingEnabled);
             if (frame.light != nullptr)
             {
@@ -60,6 +64,9 @@ namespace Kek::Graphics
     {
         Context::Clear();
         FrameData frame;
+
+        static const auto startTime = std::chrono::steady_clock::now();
+        frame.time = std::chrono::duration<float>(std::chrono::steady_clock::now() - startTime).count();
 
         if (const Components::Camera* camera = RenderRegistry::GetCamera())
         {
