@@ -2,9 +2,6 @@
 // Created by vladk on 04.11.2026.
 //
 
-
-// A/D or Left/Right - change lane, Space/W/Up - jump, S/Down - slide
-
 #include <algorithm>
 #include <cmath>
 #include <fstream>
@@ -15,6 +12,7 @@
 #include <utility>
 #include <vector>
 #include <exception>
+#include <chrono>
 
 #include "KekGraphics/Hud.hpp"
 #include "KekApplication/Application.hpp"
@@ -109,8 +107,8 @@ namespace
 
     Vector3 HudPos(const float x, const float y) { return Vector3{x, y, Hud::Depth}; }
 
-    constexpr const char* TopicTitle = "KEKLIB";
-    constexpr const char* TeamName = "TEAM NAME";
+    constexpr const char* TopicTitle = "KEKLIB example game";
+    constexpr const char* TeamName = "Kovernikov Vladislav, Belyaikin Dmitriy, Ibragimov Tamerlan";
 
     constexpr float FlySpeed = 0.2f;
     constexpr float FlyTurnSpeed = 0.025f;
@@ -392,19 +390,19 @@ struct RunnerGame final : Kek::World::Component
         scoreDigits->Show(Score());
         coinDigits->Show(coins);
 
-        SetVisible(coinIcon, HudPos(0.32f, 1.5f), true);
+        SetVisible(coinIcon, HudPos(2.45f, 1.45f), true);
         coinIcon->Rotate(Vector3{0, 0.08f, 0});
 
         for (std::size_t i = 0; i < hearts.size(); ++i)
-            SetVisible(hearts[i], HudPos(-0.9f + 0.2f * static_cast<float>(i), 1.27f), static_cast<int>(i) < lives);
+            SetVisible(hearts[i], HudPos(-2.7f + 0.2f * static_cast<float>(i), 1.45f), static_cast<int>(i) < lives);
 
         const float m = std::clamp(magnetTimer / MagnetDuration, 0.0f, 1.0f);
         magnetBar->SetScale(Vector3{std::max(0.001f, 0.8f * m), 0.06f, 0.02f});
-        SetVisible(magnetBar, HudPos(-0.95f + 0.4f * m, 1.1f), magnetTimer > 0.0f);
+        SetVisible(magnetBar, HudPos(-2.75f + 0.4f * m, 1.25f), magnetTimer > 0.0f);
 
         const float s = std::clamp(shieldTimer / ShieldDuration, 0.0f, 1.0f);
         shieldBar->SetScale(Vector3{std::max(0.001f, 0.8f * s), 0.06f, 0.02f});
-        SetVisible(shieldBar, HudPos(-0.95f + 0.4f * s, 1.0f), shieldTimer > 0.0f);
+        SetVisible(shieldBar, HudPos(-2.75f + 0.4f * s, 1.15f), shieldTimer > 0.0f);
     }
 
     Transform* body = nullptr;
@@ -630,14 +628,13 @@ struct RunnerGame final : Kek::World::Component
     {
         scoreDigits->Hide();
         coinDigits->Hide();
-        SetVisible(coinIcon, HudPos(0.32f, 1.5f), false);
+        SetVisible(coinIcon, HudPos(2.45f, 1.45f), false);
 
         for (std::size_t i = 0; i < hearts.size(); ++i)
-            SetVisible(hearts[i], HudPos(-0.9f + 0.2f * static_cast<float>(i), 1.27f), false);
+            SetVisible(hearts[i], HudPos(-2.7f + 0.2f * static_cast<float>(i), 1.45f), false);
 
-        SetVisible(magnetBar, HudPos(-0.95f, 1.1f), false);
-
-        SetVisible(shieldBar, HudPos(-0.95f, 1.0f), false);
+        SetVisible(magnetBar, HudPos(-2.75f, 1.25f), false);
+        SetVisible(shieldBar, HudPos(-2.75f, 1.15f), false);
     }
 
     void EnterMenu()
@@ -844,6 +841,12 @@ struct RunnerGame final : Kek::World::Component
     Transform* light = nullptr;
     Transform* lightMarker = nullptr;
 
+    int fpsFrames = 0;
+    float fpsAccum = 0.0f;
+    int currentFps = 60;
+    std::chrono::steady_clock::time_point lastFpsTime = std::chrono::steady_clock::now();
+    std::unique_ptr<Hud::Text> fpsText;
+
     bool flyCam = false;
     Vector3 savedCamPos{0, 3.2f, 6.0f};
     Vector3 savedCamRot{-0.35f, 0, 0};
@@ -861,9 +864,28 @@ struct RunnerGame final : Kek::World::Component
 
     void UpdateStatus()
     {
-        lightStatus->Show(RenderRegistry::lightingEnabled ? "LIGHT ON" : "LIGHT OFF", -0.62f, -1.5f, 0.02f);
-        camStatus->Show(flyCam ? "CAM FLY" : "CAM GAME", 0.0f, -1.5f, 0.02f);
-        helpHint->Show("H HELP", 0.7f, -1.5f, 0.02f);
+        lightStatus->Show(RenderRegistry::lightingEnabled ? "LIGHT ON" : "LIGHT OFF", -2.4f, -1.55f, 0.02f);
+        camStatus->Show(flyCam ? "CAM FLY" : "CAM GAME", 0.0f, -1.55f, 0.02f);
+        helpHint->Show("H HELP", 2.4f, -1.55f, 0.02f);
+    }
+
+    void UpdateFps()
+    {
+        const auto now = std::chrono::steady_clock::now();
+        const float delta = std::chrono::duration<float>(now - lastFpsTime).count();
+        lastFpsTime = now;
+
+        fpsFrames++;
+        fpsAccum += delta;
+
+        if (fpsAccum >= 0.5f)
+        {
+            currentFps = static_cast<int>(std::round(static_cast<float>(fpsFrames) / fpsAccum));
+            fpsFrames = 0;
+            fpsAccum = 0.0f;
+        }
+
+        fpsText->Show(std::to_string(currentFps) + " FPS", -0.8f, -1.55f, 0.02f);
     }
 
     void SetHelp(const bool on)
@@ -963,6 +985,7 @@ struct RunnerGame final : Kek::World::Component
 
         UpdateLight();
         UpdateStatus();
+        UpdateFps();
     }
 };
 
@@ -1049,12 +1072,13 @@ int RunGame()
 
     const Vector3 white{1, 1, 1};
     const Vector3 yellow{1.0f, 0.85f, 0.2f};
-
-    runner->scoreDigits = std::make_unique<Hud::Digits>(cameraRoot, white, 5, -0.55f, 1.5f, 0.9f);
-    runner->coinDigits = std::make_unique<Hud::Digits>(cameraRoot, yellow, 3, 0.72f, 1.5f, 0.9f);
-    runner->coinIcon = Hud::MakeCube(cameraRoot, yellow, true, Vector3{0.16f, 0.16f, 0.04f});
     const Vector3 green{0.3f, 1.0f, 0.4f};
     const Vector3 lightBlue{0.7f, 0.8f, 1.0f};
+
+    runner->fpsText = std::make_unique<Hud::Text>(cameraRoot, green, 60);
+    runner->scoreDigits = std::make_unique<Hud::Digits>(cameraRoot, white, 5, 1.8f, 1.45f, 0.9f);
+    runner->coinDigits = std::make_unique<Hud::Digits>(cameraRoot, yellow, 3, 2.75f, 1.45f, 0.9f);
+    runner->coinIcon = Hud::MakeCube(cameraRoot, yellow, true, Vector3{0.16f, 0.16f, 0.04f});
 
     runner->bigScore = std::make_unique<Hud::Digits>(cameraRoot, white, 5, 0.35f, 0.0f, 1.0f);
     runner->bigBest = std::make_unique<Hud::Digits>(cameraRoot, yellow, 5, 0.35f, -0.4f, 1.0f);
@@ -1074,7 +1098,7 @@ int RunGame()
         std::max(Hud::Text::PixelCount("CAM GAME"), Hud::Text::PixelCount("CAM FLY")));
     runner->helpHint = std::make_unique<Hud::Text>(cameraRoot, white, Hud::Text::PixelCount("H HELP"));
 
-    runner->helpPanel = Hud::MakeCube(cameraRoot, Vector3{0.03f, 0.04f, 0.1f}, true, Vector3{2.4f, 4.0f, 0.01f});
+    runner->helpPanel = Hud::MakeCube(cameraRoot, Vector3{0.03f, 0.04f, 0.1f}, true, Vector3{7.0f, 4.0f, 0.01f});
     for (const HelpLine& line : HelpLines)
         runner->helpTexts.push_back(std::make_unique<Hud::Text>(cameraRoot, white, Hud::Text::PixelCount(line.text)));
 
@@ -1089,8 +1113,8 @@ int RunGame()
 
     Kek::Application app(Kek::Platform::WindowSettings
     {
-        480,
-        800,
+        1280,
+        720,
         "KekLib - 17 Runner"
     },
     std::move(root));
