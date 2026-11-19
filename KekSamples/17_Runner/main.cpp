@@ -104,6 +104,51 @@ namespace
         transform->SetPosition(position);
         return transform;
     }
+    // Same as Hud::MakeCube, but with the animated power-up shader
+    Transform* AddGlowCube(Node& root, const Vector3& color, const Vector3& scale = Vector3{1, 1, 1})
+    {
+        auto node = std::make_unique<Node>();
+        auto* transform = node->AttachComponent<Transform>(Vector3{0, Hidden, 0});
+        transform->SetScale(scale);
+        node->AttachComponent<Components::MeshDisplay>(
+            Mesh::Cube(color), MaterialSettings{.fragmentShader = "shaders/powerup.frag"});
+        root.AddChild(std::move(node));
+        return transform;
+    }
+    Transform* AddGlowDisc(Node& root, const Vector3& color, const int segments = 48)
+    {
+        using Kek::Math::Vector2;
+
+        std::vector<Vertex> vertices;
+        std::vector<unsigned int> indices;
+        const Vector3 up{0, 1, 0};
+
+        vertices.emplace_back(Vector3{0, 0, 0}, up, color, Vector2{0.5f, 0.5f}); // center
+
+        for (int i = 0; i < segments; ++i)
+        {
+            const float a = 6.2831853f * static_cast<float>(i) / static_cast<float>(segments);
+            const float c = std::cos(a);
+            const float s = std::sin(a);
+            vertices.emplace_back(Vector3{0.5f * c, 0, -0.5f * s}, up, color,
+                                  Vector2{0.5f + 0.5f * c, 0.5f + 0.5f * s});
+        }
+
+        for (int i = 0; i < segments; ++i)
+        {
+            indices.push_back(0);
+            indices.push_back(static_cast<unsigned int>(1 + i));
+            indices.push_back(static_cast<unsigned int>(1 + (i + 1) % segments));
+        }
+
+        auto node = std::make_unique<Node>();
+        auto* transform = node->AttachComponent<Transform>(Vector3{0, Hidden, 0});
+        node->AttachComponent<Components::MeshDisplay>(
+            Mesh{std::move(vertices), std::move(indices)},
+            MaterialSettings{.fragmentShader = "shaders/powerup.frag"});
+        root.AddChild(std::move(node));
+        return transform;
+    }
 
     Vector3 HudPos(const float x, const float y) { return Vector3{x, y, Hud::Depth}; }
 
@@ -1050,8 +1095,8 @@ int RunGame()
     runner->body = Hud::MakeCube(*root, Vector3{0.25f, 0.6f, 1.0f}, false);
     runner->head = Hud::MakeCube(*root, Vector3{1.0f, 0.8f, 0.65f}, false);
     runner->shadow = Hud::MakeCube(*root, Vector3{0.05f, 0.05f, 0.07f}, true);
-    runner->magnetAura = Hud::MakeCube(*root, Vector3{0.3f, 0.9f, 1.0f}, true);
-    runner->shieldAura = Hud::MakeCube(*root, Vector3{0.3f, 1.0f, 0.5f}, true);
+    runner->magnetAura = AddGlowDisc(*root, Vector3{0.3f, 0.9f, 1.0f});
+    runner->shieldAura = AddGlowDisc(*root, Vector3{0.3f, 1.0f, 0.5f});
 
     // Object pool: rows of obstacles and coins that get recycled as they pass the camera
     runner->rows.resize(RowCount);
@@ -1066,8 +1111,8 @@ int RunGame()
         for (auto& c : row.coins)
             c.transform = Hud::MakeCube(*root, Vector3{1.0f, 0.85f, 0.1f}, true, Vector3{0.4f, 0.4f, 0.1f});
 
-        row.pickups[0] = Hud::MakeCube(*root, Vector3{0.3f, 0.9f, 1.0f}, true, Vector3{0.5f, 0.5f, 0.5f});
-        row.pickups[1] = Hud::MakeCube(*root, Vector3{0.3f, 1.0f, 0.4f}, true, Vector3{0.5f, 0.5f, 0.5f});
+        row.pickups[0] = AddGlowCube(*root, Vector3{0.3f, 0.9f, 1.0f}, Vector3{0.5f, 0.5f, 0.5f});
+        row.pickups[1] = AddGlowCube(*root, Vector3{0.3f, 1.0f, 0.4f}, Vector3{0.5f, 0.5f, 0.5f});
     }
 
     const Vector3 white{1, 1, 1};
