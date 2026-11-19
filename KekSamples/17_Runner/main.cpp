@@ -115,6 +115,16 @@ namespace
         root.AddChild(std::move(node));
         return transform;
     }
+    Transform* AddBuilding(Node& root, const Vector3& color, const Vector3& scale = Vector3{1, 1, 1})
+    {
+        auto node = std::make_unique<Node>();
+        auto* transform = node->AttachComponent<Transform>(Vector3{0, Hidden, 0});
+        transform->SetScale(scale);
+        node->AttachComponent<Components::MeshDisplay>(
+            Mesh::Cube(color), MaterialSettings{.fragmentShader = "shaders/building.frag"});
+        root.AddChild(std::move(node));
+        return transform;
+    }
     Transform* AddGlowDisc(Node& root, const Vector3& color, const int segments = 48)
     {
         using Kek::Math::Vector2;
@@ -1082,7 +1092,7 @@ int RunGame()
             const int colorIndex = std::uniform_int_distribution<int>(0, 5)(colorRng);
 
             RunnerGame::Building b;
-            b.transform = AddCube(*root, Vector3{0, Hidden, 0}, Vector3{1, 1, 1}, palette[colorIndex]);
+            b.transform = AddBuilding(*root, palette[colorIndex]);
             b.side = side;
             b.z = 10.0f - static_cast<float>(i) * (DecorLength / static_cast<float>(BuildingsPerSide));
             runner->buildings.push_back(b);
