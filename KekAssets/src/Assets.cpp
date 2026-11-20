@@ -52,4 +52,11 @@ namespace Kek::Assets
         stbi_image_free(data);
         return image;
     }
+
+    std::filesystem::path root = []{
+        namespace fs = std::filesystem;
+        if (fs::exists(fs::path(KEK_DEFAULT_ASSETS_DIR) / "shaders")) return fs::path(KEK_DEFAULT_ASSETS_DIR);
+        if (fs::exists("assets/shaders")) return fs::path("assets");
+        return fs::path(KEK_DEFAULT_ASSETS_DIR);
+    }();
 }

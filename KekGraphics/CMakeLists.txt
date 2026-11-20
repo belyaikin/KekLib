@@ -33,6 +33,7 @@ add_library(KekGraphics STATIC
         src/Material.cpp
         src/ShaderLibrary.cpp
         include/KekGraphics/OpenGL/Objects/Texture.hpp
+        include/KekGraphics/Hud.hpp
 )
 
 target_include_directories(KekGraphics PUBLIC

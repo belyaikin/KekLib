@@ -3,6 +3,7 @@
 //
 
 #include "KekGraphics/Renderer.hpp"
+#include <chrono>
 
 #include "KekGraphics/Material.hpp"
 #include "KekGraphics/RenderRegistry.hpp"
@@ -23,6 +24,7 @@ namespace Kek::Graphics
             Math::Matrix4 projection = Math::Matrix4::Identity();
             Math::Vector3 viewPosition{0, 0, 0};
             const Components::Light* light = nullptr;
+            float time = 0.0f;
         };
         // Uniforms a program does not declare are ignored by OpenGL(location -1),
         // so an unlit shader can simply skip the light uniforms.
@@ -31,7 +33,9 @@ namespace Kek::Graphics
             program.SetMatrix4("uView", frame.view);
             program.SetMatrix4("uProjection", frame.projection);
             program.SetVector3("uViewPos", frame.viewPosition);
-            program.SetBool("uLightingEnabled", frame.light != nullptr);
+            program.SetVector3("uViewPos", frame.viewPosition);
+            program.SetFloat("uTime", frame.time);
+            program.SetBool("uLightingEnabled", frame.light != nullptr && RenderRegistry::lightingEnabled);
             if (frame.light != nullptr)
             {
                 program.SetVector3("uLightPos", frame.light->GetPosition());
@@ -44,6 +48,7 @@ namespace Kek::Graphics
     {
         Context::SetClearColor(0.10f, 0.20f, 0.40f, 1.0f);
         Context::EnableDepthTest();
+        Context::EnableBackFaceCulling();
     }
 
     void Renderer::Resize(const int width, const int height)
@@ -59,6 +64,9 @@ namespace Kek::Graphics
     {
         Context::Clear();
         FrameData frame;
+
+        static const auto startTime = std::chrono::steady_clock::now();
+        frame.time = std::chrono::duration<float>(std::chrono::steady_clock::now() - startTime).count();
 
         if (const Components::Camera* camera = RenderRegistry::GetCamera())
         {
@@ -78,6 +86,12 @@ namespace Kek::Graphics
             if (!item.mesh || !item.material)
                 continue;
 
+            const Math::Matrix4 world = item.transform ? item.transform->GetWorldMatrix() : Math::Matrix4::Identity();
+
+            // Objects parked far below the scene (Hud::Hidden = -1000) are hidden: skip the draw call.
+            if (world.At(1, 3) < -500.0f)
+                continue;
+
             const ShaderProgram& program = item.material->GetProgram();
             // Switch programs only when the object needs a different one.
             if (&program != current)
@@ -86,8 +100,6 @@ namespace Kek::Graphics
                 ApplyFrameUniforms(program, frame);
                 current = &program;
             }
-
-            const Math::Matrix4 world = item.transform ? item.transform->GetWorldMatrix() : Math::Matrix4::Identity();
 
             program.SetMatrix4("uModel", world);
             item.material->Apply();

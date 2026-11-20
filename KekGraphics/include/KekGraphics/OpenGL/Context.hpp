@@ -58,5 +58,7 @@ namespace Kek::Graphics::OpenGL
         /// @brief Uploads RGBA8 pixels into the currently bound 2D texture and builds mipmaps.
         static void UploadTexture2D(int width, int height, const unsigned char* rgba);
 
+        static void EnableBackFaceCulling();
+
     };
 }

@@ -51,3 +51,11 @@ target_link_libraries(Sample14_Pong PRIVATE KekApplication)
 
 add_executable(Sample15_Light 15_Light/main.cpp)
 target_link_libraries(Sample15_Light PRIVATE KekApplication)
+
+add_executable(Sample16_Materials 16_Materials/main.cpp)
+target_link_libraries(Sample16_Materials PRIVATE KekApplication)
+
+add_executable(Sample17_Runner 17_Runner/main.cpp)
+target_link_libraries(Sample17_Runner PRIVATE KekApplication)
+add_custom_command(TARGET Sample17_Runner POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets $<TARGET_FILE_DIR:Sample17_Runner>/assets)
