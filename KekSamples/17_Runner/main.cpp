@@ -125,7 +125,8 @@ namespace
         root.AddChild(std::move(node));
         return transform;
     }
-    Transform* AddGlowDisc(Node& root, const Vector3& color, const int segments = 48)
+    Transform* AddGlowDisc(Node& root, const Vector3& color, const int segments = 48,
+                           const char* fragmentShader = "shaders/powerup.frag")
     {
         using Kek::Math::Vector2;
 
@@ -155,7 +156,7 @@ namespace
         auto* transform = node->AttachComponent<Transform>(Vector3{0, Hidden, 0});
         node->AttachComponent<Components::MeshDisplay>(
             Mesh{std::move(vertices), std::move(indices)},
-            MaterialSettings{.fragmentShader = "shaders/powerup.frag"});
+            MaterialSettings{.fragmentShader = fragmentShader});
         root.AddChild(std::move(node));
         return transform;
     }
@@ -1106,7 +1107,7 @@ int RunGame()
     runner->head = Hud::MakeCube(*root, Vector3{1.0f, 0.8f, 0.65f}, false);
     runner->shadow = Hud::MakeCube(*root, Vector3{0.05f, 0.05f, 0.07f}, true);
     runner->magnetAura = AddGlowDisc(*root, Vector3{0.3f, 0.9f, 1.0f});
-    runner->shieldAura = AddGlowDisc(*root, Vector3{0.3f, 1.0f, 0.5f});
+    runner->shieldAura = AddGlowDisc(*root, Vector3{0.3f, 1.0f, 0.5f}, 48, "shaders/shield.frag");
 
     // Object pool: rows of obstacles and coins that get recycled as they pass the camera
     runner->rows.resize(RowCount);
